@@ -11,4 +11,12 @@ public static class MqttApi
             new Heeheehorhor("HEEHEEHORHOR_SUCCESS")
         );
     }
+
+    public static void ButtonPress()
+    {
+        MqttService.Instance.PublishHeeHeeHorHor(
+            MqttService.PublishTopic.BUTTON_TOPIC,
+            new Heeheehorhor("HEEHEEHORHOR_FROM_PHONE")
+        );
+    }
 }

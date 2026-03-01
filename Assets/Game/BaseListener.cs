@@ -6,11 +6,13 @@ using UnityEngine;
 public class BaseListener : MonoBehaviour
 {
     void OnEnable() {
-        MqttService.Instance.OnMessageReceived += HandleMqtt;
+        if (MqttService.Instance != null)
+            MqttService.Instance.OnMessageReceived += HandleMqtt;
     }
-    
+
     void OnDisable() {
-        MqttService.Instance.OnMessageReceived -= HandleMqtt;
+        if (MqttService.Instance != null)
+            MqttService.Instance.OnMessageReceived -= HandleMqtt;
     }
 
     void HandleMqtt (string topic, string payload) {

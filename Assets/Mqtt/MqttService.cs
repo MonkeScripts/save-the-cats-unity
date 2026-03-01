@@ -16,7 +16,8 @@ public class MqttService : MonoBehaviour
 
     public enum PublishTopic
     {
-        HEEHEEHORHOR_TOPIC
+        HEEHEEHORHOR_TOPIC,
+        BUTTON_TOPIC
     }
 
     // Roles and topic building
@@ -48,7 +49,7 @@ public class MqttService : MonoBehaviour
 
         // Create TLS-enabled MQTT client
         client = new MqttClient(
-            "localhost",
+            "192.168.0.93",
             8883,
             true,
             caCert,
@@ -87,6 +88,7 @@ public class MqttService : MonoBehaviour
         string topicString = topic switch
         {
             PublishTopic.HEEHEEHORHOR_TOPIC => "phone/heeheehorhor",
+            PublishTopic.BUTTON_TOPIC => "phone/button",
             _ => throw new ArgumentOutOfRangeException(nameof(topic), topic, null)
         };
 
