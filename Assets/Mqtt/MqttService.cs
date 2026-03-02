@@ -2,7 +2,6 @@ using UnityEngine;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 using System.Security.Cryptography.X509Certificates;
-using System.IO;
 using System.Text;
 using System;
 using System.Collections.Generic;
@@ -43,13 +42,13 @@ public class MqttService : MonoBehaviour
 
     void Start()
     {
-        // Load CA certificate
-        var caCertPath = Path.Combine(Application.dataPath, "Certificates/cert.pem");
-        var caCert = new X509Certificate2(caCertPath);
+        // Load CA certificate from Resources (works in Editor + Android/iOS)
+        var certAsset = Resources.Load<TextAsset>("Certificates/cert");
+        var caCert = new X509Certificate2(certAsset.bytes);
 
         // Create TLS-enabled MQTT client
         client = new MqttClient(
-            "192.168.0.93",
+            "172.20.10.2",
             8883,
             true,
             caCert,
