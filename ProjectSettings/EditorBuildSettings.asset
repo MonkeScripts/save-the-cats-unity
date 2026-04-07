@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/SampleScene.unity
+    guid: 4755b35b590504809a7525fd2109c2e2
+  - enabled: 0
+    path: Assets/Scenes/Test-mqtt.unity
+    guid: 559e4ad86d11ac645bcfa30105f05496
+  - enabled: 0
+    path: Assets/Scenes/Test-1-exercise-connection.unity
+    guid: e344029731b506e4f8ee7cf83ff68f29
+  - enabled: 0
+    path: Assets/Scenes/Test-for-final-iteration.unity
+    guid: b4d214b91e7b7e340bf15b6a580bd037
+  - enabled: 0
+    path: Assets/Scenes/headset-view.unity
+    guid: 237af0f73e42b5642a37a6da781b0c6e
+  - enabled: 1
+    path: Assets/Scenes/After-integration-test.unity
+    guid: 8d23eaf8d05ea1e4f91d9f0aca8aa268
+  m_configObjects:
+    UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
+    UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: c199e683398494f32b4cde18e73ab731, type: 2}
+    com.unity.xr.magicleap.magic_leap_settings: {fileID: 11400000, guid: 0b53a025a635a4393ba0b49822242280, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 3fd4fc0127790db4bae83f7b77da8d45, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: b07c4ba7650be4c25b3d0c497e7e2bb8, type: 2}
+  m_UseUCBPForAssetBundles: 0
