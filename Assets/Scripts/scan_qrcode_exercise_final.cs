@@ -35,20 +35,11 @@ public class scan_qrcode_exercise_final : MonoBehaviour
     [SerializeField] private TextMeshProUGUI finalScoreText;
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private GameObject startButton;
-    [SerializeField] private TextMeshProUGUI feedbackText;
     [SerializeField] private GameObject wrongMovePanel;
     
 
     [Header("Game Settings")]
     [SerializeField] private float gameDuration = 60f;
-    [SerializeField] private string mainMenuSceneName = "MainMenu";
-    private float timeLeft;
-    private int catCount = 0;
-    private bool isGameActive = false;
-    private bool isAnchored = false;
-    private bool isCountingDown = false;
-    private bool triggerWrongMoveUI = false;
-    private GameObject currentActiveExerciseModel;
 
     [Header("Exercise Prefabs")]
     [SerializeField] private GameObject highKneePrefab;
@@ -73,18 +64,29 @@ public class scan_qrcode_exercise_final : MonoBehaviour
     [SerializeField] private TextMeshProUGUI roundScoreText; // "Cats saved this round: X"
     [SerializeField] private Button playAgainButton;
     [SerializeField] private Button finalEndButton;
+
+    [Header("Water Bucket Settings")]
+    [SerializeField] private GameObject waterBucketPrefab;
+    [SerializeField] private GameObject rainEffectPrefab;
+    [SerializeField] private float bucketSpawnDistance = 0.15f;    // 15cm away from building
+    [SerializeField] private float bucketTriggerDistance = 0.3f;   // How close phone must be
+    [SerializeField] private float rainDuration = 5f;              // Rain lasts 5 seconds
+    [SerializeField] private float bucketSpawnTime = 15f;          // Spawn at 15s remaining
     
     private ExerciseType selectedExercise = ExerciseType.None;
-
     private Dictionary<string, GameObject> spawnedCubes = new Dictionary<string, GameObject>();
-
-    public void GoToMainMenu()
-    {
-        Debug.Log($"{TAG} Back Button Pressed. Returning to Scene: {mainMenuSceneName}");
-        
-        // This line actually changes the scene
-        SceneManager.LoadScene(mainMenuSceneName);
-    }
+    private float timeLeft;
+    private int catCount = 0;
+    private bool isGameActive = false;
+    private bool isAnchored = false;
+    private bool isCountingDown = false;
+    private bool triggerWrongMoveUI = false;
+    private GameObject currentActiveExerciseModel;
+    private GameObject spawnedWaterBucket;
+    private GameObject spawnedRainEffect;
+    private bool bucketHasSpawned = false;
+    private bool bucketCollected = false;
+    private bool isRaining = false;
 
     void Awake() 
     {
@@ -290,6 +292,18 @@ public class scan_qrcode_exercise_final : MonoBehaviour
             {
                 timeLeft -= Time.deltaTime;
                 timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
+
+                // ✅ NEW: Check if it's time to spawn the bucket
+                if (!bucketHasSpawned && timeLeft <= bucketSpawnTime)
+                {
+                    SpawnWaterBucket();
+                }
+
+                // ✅ NEW: Check if phone is near the bucket
+                if (bucketHasSpawned && !bucketCollected && spawnedWaterBucket != null)
+                {
+                    CheckPhoneNearBucket();
+                }
             }
             else { EndGame(); }
         }
@@ -310,35 +324,45 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         isGameActive = false;
         timeLeft = 0;
 
-        // 1. STOP the looping sounds FIRST
+        // 1. Stop looping sounds
         if (audioSource != null)
         {
-            audioSource.loop = false; // Disable looping
-            audioSource.Stop();       // Silence the fire sound
+            audioSource.loop = false;
+            audioSource.Stop();
         }
 
-        // 2. NOW play the victory fanfare
+        // 2. Play victory
         if (audioSource != null && victorySound != null)
         {
-            // PlayOneShot is great here as it won't be cut off by future sounds
             audioSource.PlayOneShot(victorySound);
         }
 
-        // 3. Clean up the model
+        // 3. Clean up exercise model
         if (currentActiveExerciseModel != null)
         {
             Destroy(currentActiveExerciseModel);
         }
 
-        //4. Show the intermediate panel instead of the final game over
+        // ✅ 4. Clean up bucket and rain (BEFORE showing UI)
+        if (spawnedWaterBucket != null)
+        {
+            Destroy(spawnedWaterBucket);
+            Debug.Log($"{TAG} 🧹 Bucket cleaned up on game end.");
+        }
+        if (spawnedRainEffect != null)
+        {
+            Destroy(spawnedRainEffect);
+            Debug.Log($"{TAG} 🧹 Rain cleaned up on game end.");
+        }
+
+        // 5. Show summary panel
         if(roundSummaryPanel != null) 
         {
             roundSummaryPanel.SetActive(true);
             if(roundScoreText != null) roundScoreText.text = $"You saved {catCount} cats!";
         }
 
-        
-        // Hide gameplay UI
+        // 6. Hide gameplay UI
         timerPanel.SetActive(false);
         catCountPanel.SetActive(false);
         Debug.Log($"{TAG} Round Ended. Waiting for player choice (Again/End).");
@@ -356,6 +380,11 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         waitingExercisePanel.SetActive(true);
 
         Debug.Log($"{TAG} Player chose AGAIN. Ready for new MQTT command.");
+
+        bucketHasSpawned = false;
+        bucketCollected = false;
+        isRaining = false;
+        Debug.Log($"{TAG} 🔄 Bucket and rain flags reset for new round.");
     }
 
     public void ShowFinalResults()
@@ -502,20 +531,81 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         }
     }
 
-    // Add this Coroutine to handle the "Cat Saved!" pop-up
-    private System.Collections.IEnumerator ShowFeedbackRoutine(string message)
+    void SpawnWaterBucket()
     {
-        if (feedbackText != null)
+        bucketHasSpawned = true;
+
+        // Find the building's position
+        Vector3 buildingPosition = Vector3.zero;
+        foreach (var entry in spawnedCubes)
         {
-            feedbackText.text = message;
-            feedbackText.gameObject.SetActive(true);
-            
-            // Wait for 1 second so the user can see it
-            yield return new WaitForSeconds(1.0f);
-            
-            feedbackText.gameObject.SetActive(false);
+            buildingPosition = entry.Value.transform.position;
+            break;
+        }
+
+        // Spawn bucket 15cm to the RIGHT of the building
+        Vector3 bucketPosition = buildingPosition + new Vector3(bucketSpawnDistance, 0f, 0f);
+
+        spawnedWaterBucket = Instantiate(waterBucketPrefab, bucketPosition, Quaternion.identity);
+
+        // 🪲 DEBUG LOGS
+        Debug.Log($"{TAG} ⏱️ 15 SECONDS LEFT! Water bucket spawned!");
+        Debug.Log($"{TAG} 🏠 Building Position: {buildingPosition}");
+        Debug.Log($"{TAG} 🪣 Bucket Spawned At: {bucketPosition}");
+        Debug.Log($"{TAG} 📱 Phone needs to get within {bucketTriggerDistance}m of bucket to collect it.");
+    }
+
+    void CheckPhoneNearBucket()
+    {
+        Vector3 phonePosition = Camera.main.transform.position;
+        Vector3 bucketPosition = spawnedWaterBucket.transform.position;
+        float distance = Vector3.Distance(phonePosition, bucketPosition);
+
+        // 🪲 DEBUG: Print phone position every second (use a timer to avoid spam)
+        Debug.Log($"{TAG} 📱 Phone Position: {phonePosition}");
+        Debug.Log($"{TAG} 🪣 Bucket Position: {bucketPosition}");
+        Debug.Log($"{TAG} 📏 Distance from phone to bucket: {distance:F2}m (need < {bucketTriggerDistance}m)");
+
+        if (distance < bucketTriggerDistance)
+        {
+            Debug.Log($"{TAG} ✅ PHONE IS NEAR BUCKET! Collecting bucket now...");
+            CollectWaterBucket();
         }
     }
+
+    void CollectWaterBucket()
+    {
+        bucketCollected = true;
+
+        // Destroy the bucket
+        Destroy(spawnedWaterBucket);
+        Debug.Log($"{TAG} 🪣 Bucket DESTROYED (collected by player).");
+
+        // Find building position to place rain above it
+        Vector3 buildingPosition = Vector3.zero;
+        foreach (var entry in spawnedCubes)
+        {
+            buildingPosition = entry.Value.transform.position;
+            break;
+        }
+
+        // Place rain slightly above the building
+        Vector3 rainPosition = buildingPosition + new Vector3(0f, -1.5f, 0f);
+
+        // Spawn the rain effect
+        spawnedRainEffect = Instantiate(rainEffectPrefab, rainPosition, Quaternion.identity);
+
+        Debug.Log($"{TAG} 🌧️ Rain effect SPAWNED at: {rainPosition}");
+
+        // Give bonus cats
+        catCount += 5;
+        if (catCountText != null) catCountText.text = $"{catCount}";
+        Debug.Log($"{TAG} 🐱 BONUS! +5 cats saved! New total: {catCount}");
+
+        // Start the rain timer coroutine
+        StartCoroutine(RainRoutine());
+    }
+
 
     private System.Collections.IEnumerator ShowWrongMoveRoutine()
     {
@@ -543,6 +633,23 @@ public class scan_qrcode_exercise_final : MonoBehaviour
 
         // 5. Reset the coroutine reference so we can trigger it again
         wrongMoveCoroutine = null;
+    }
+
+    private System.Collections.IEnumerator RainRoutine()
+    {
+        isRaining = true;
+        Debug.Log($"{TAG} 🌧️ Rain APPEARS. Will last {rainDuration} seconds.");
+        Debug.Log($"{TAG} 🌧️ Rain Position: {spawnedRainEffect.transform.position}");
+
+        yield return new WaitForSeconds(rainDuration);
+
+        if (spawnedRainEffect != null)
+        {
+            Destroy(spawnedRainEffect);
+            Debug.Log($"{TAG} ☀️ Rain DISAPPEARS after {rainDuration} seconds.");
+        }
+
+        isRaining = false;
     }
 
 }
