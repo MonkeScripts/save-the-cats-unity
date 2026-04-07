@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Concurrent;
 
 // 1. Add an Enum to keep track of the exercise type
-public enum ExerciseType { None, HighKnee, PushUp, SitUp, Lunge, Squat, OverheadHold }
+public enum ExerciseType { None, Squat, Lunge, HighKnee, Climbers, AltArmLeg, ChairTricep }
 
 public class scan_qrcode_exercise_final : MonoBehaviour
 {
@@ -42,12 +42,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
     [SerializeField] private float gameDuration = 60f;
 
     [Header("Exercise Prefabs")]
-    [SerializeField] private GameObject highKneePrefab;
-    [SerializeField] private GameObject pushUpPrefab;
-    [SerializeField] private GameObject sitUpPrefab;
-    [SerializeField] private GameObject lungePrefab;
     [SerializeField] private GameObject squatPrefab;
-    [SerializeField] private GameObject overheadHoldPrefab;
+    [SerializeField] private GameObject lungePrefab;
+    [SerializeField] private GameObject highKneePrefab;
+    [SerializeField] private GameObject climbersPrefab;
+    [SerializeField] private GameObject altArmLegPrefab;
+    [SerializeField] private GameObject chairTricepPrefab;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioSource audioSource;
@@ -152,12 +152,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
                 {
                     switch (message)
                     {
-                        case "0": selectedExercise = ExerciseType.HighKnee; break;
-                        case "1": selectedExercise = ExerciseType.PushUp; break;
-                        case "2": selectedExercise = ExerciseType.SitUp; break;
-                        case "3": selectedExercise = ExerciseType.Lunge; break;
-                        case "4": selectedExercise = ExerciseType.Squat; break;
-                        case "5": selectedExercise = ExerciseType.OverheadHold; break;
+                        case "1": selectedExercise = ExerciseType.Squat;       break;
+                        case "2": selectedExercise = ExerciseType.Lunge;       break;
+                        case "3": selectedExercise = ExerciseType.HighKnee;    break;
+                        case "4": selectedExercise = ExerciseType.Climbers;    break;
+                        case "5": selectedExercise = ExerciseType.AltArmLeg;   break;
+                        case "6": selectedExercise = ExerciseType.ChairTricep; break;
                     }
 
                     if (selectedExercise != ExerciseType.None)
@@ -224,12 +224,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         bool isCorrect = false;
         switch (selectedExercise)
         {
-            case ExerciseType.HighKnee: if (message == "0") isCorrect = true; break;
-            case ExerciseType.PushUp:   if (message == "1") isCorrect = true; break;
-            case ExerciseType.SitUp:    if (message == "2") isCorrect = true; break;
-            case ExerciseType.Lunge:    if (message == "3") isCorrect = true; break;
-            case ExerciseType.Squat:    if (message == "4") isCorrect = true; break;
-            case ExerciseType.OverheadHold: if (message == "5") isCorrect = true; break;
+            case ExerciseType.Squat:       if (message == "1") isCorrect = true; break;
+            case ExerciseType.Lunge:       if (message == "2") isCorrect = true; break;
+            case ExerciseType.HighKnee:    if (message == "3") isCorrect = true; break;
+            case ExerciseType.Climbers:    if (message == "4") isCorrect = true; break;
+            case ExerciseType.AltArmLeg:   if (message == "5") isCorrect = true; break;
+            case ExerciseType.ChairTricep: if (message == "6") isCorrect = true; break;
         }
 
         if (isCorrect)
@@ -240,7 +240,7 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         else
         {
             Debug.Log($"{TAG} WRONG MOVE: Expected {selectedExercise}, but got action {message}");
-            if (int.TryParse(message, out int move) && move >= 0 && move <= 5)
+            if (int.TryParse(message, out int move) && move >= 1 && move <= 6)
             {
                 Debug.Log($"{TAG} Wrong move detected: {message}");
                 triggerWrongMoveUI = true;
@@ -463,12 +463,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
     {
         return selectedExercise switch
         {
-            ExerciseType.HighKnee    => highKneePrefab,
-            ExerciseType.PushUp      => pushUpPrefab,
-            ExerciseType.SitUp       => sitUpPrefab,
-            ExerciseType.Lunge       => lungePrefab,
             ExerciseType.Squat       => squatPrefab,
-            ExerciseType.OverheadHold => overheadHoldPrefab,
+            ExerciseType.Lunge       => lungePrefab,
+            ExerciseType.HighKnee    => highKneePrefab,
+            ExerciseType.Climbers    => climbersPrefab,
+            ExerciseType.AltArmLeg   => altArmLegPrefab,
+            ExerciseType.ChairTricep => chairTricepPrefab,
             _ => null
         };
     }

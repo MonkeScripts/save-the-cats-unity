@@ -4498,6 +4498,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1679054237}
   m_CullTransparentMesh: 1
+--- !u!1001 &1697585802
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_Name
+      value: squats_fire_Oak_Tree
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2384.2275
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1376.3347
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.000000021855694
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
 --- !u!4 &1765540924 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6605111590819766859, guid: 2bb019c4586222e4881292b66c2d2ac3, type: 3}
@@ -5638,12 +5695,12 @@ MonoBehaviour:
   startButton: {fileID: 1679054237}
   wrongMovePanel: {fileID: 1570155771}
   gameDuration: 60
-  highKneePrefab: {fileID: 5121918052386228165, guid: 56e949906ac971e408ec6aec815d0b39, type: 3}
-  pushUpPrefab: {fileID: 988390728006736675, guid: 083f18059286d01449b5d095bf7c05eb, type: 3}
-  sitUpPrefab: {fileID: 2550208501883326453, guid: 6e7c0eef1ac658d4e9e4369c32929cda, type: 3}
+  squatPrefab: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
   lungePrefab: {fileID: 2550208501883326453, guid: 6e7c0eef1ac658d4e9e4369c32929cda, type: 3}
-  squatPrefab: {fileID: 1000010302070858, guid: 9a872c22238a0a341b681575450d1b4c, type: 3}
-  overheadHoldPrefab: {fileID: 6802447506477772605, guid: b76deb50b0029974d99911150ed1003b, type: 3}
+  highKneePrefab: {fileID: 5121918052386228165, guid: 56e949906ac971e408ec6aec815d0b39, type: 3}
+  climbersPrefab: {fileID: 662608068145287718, guid: 242258e35e67b454eb6204741cd8b7f7, type: 3}
+  altArmLegPrefab: {fileID: 662608068145287718, guid: 242258e35e67b454eb6204741cd8b7f7, type: 3}
+  chairTricepPrefab: {fileID: 988390728006736675, guid: 083f18059286d01449b5d095bf7c05eb, type: 3}
   audioSource: {fileID: 678173551}
   tickSound: {fileID: 8300000, guid: de02b3d8ea5aee943bf05748c1b6d538, type: 3}
   goSound: {fileID: 8300000, guid: 186c9c4f65a181845b596fcfa983bc63, type: 3}
@@ -5658,7 +5715,7 @@ MonoBehaviour:
   finalEndButton: {fileID: 1885759663}
   waterBucketPrefab: {fileID: 6802447506477772605, guid: b76deb50b0029974d99911150ed1003b, type: 3}
   rainEffectPrefab: {fileID: 1000010302070858, guid: 9a872c22238a0a341b681575450d1b4c, type: 3}
-  bucketSpawnDistance: 0.7
+  bucketSpawnDistance: 0.8
   bucketTriggerDistance: 0.6
   rainDuration: 30
   bucketSpawnTime: 55
@@ -5773,3 +5830,4 @@ SceneRoots:
   - {fileID: 202349183}
   - {fileID: 1864559703}
   - {fileID: 678173552}
+  - {fileID: 1697585802}
