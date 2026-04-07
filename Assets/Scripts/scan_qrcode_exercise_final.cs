@@ -152,12 +152,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
                 {
                     switch (message)
                     {
-                        case "1": selectedExercise = ExerciseType.Squat;       break;
-                        case "2": selectedExercise = ExerciseType.Lunge;       break;
-                        case "3": selectedExercise = ExerciseType.HighKnee;    break;
-                        case "4": selectedExercise = ExerciseType.Climbers;    break;
-                        case "5": selectedExercise = ExerciseType.AltArmLeg;   break;
-                        case "6": selectedExercise = ExerciseType.ChairTricep; break;
+                        case "0": selectedExercise = ExerciseType.Squat;       break;
+                        case "1": selectedExercise = ExerciseType.Lunge;       break;
+                        case "2": selectedExercise = ExerciseType.HighKnee;    break;
+                        case "3": selectedExercise = ExerciseType.Climbers;    break;
+                        case "4": selectedExercise = ExerciseType.AltArmLeg;   break;
+                        case "5": selectedExercise = ExerciseType.ChairTricep; break;
                     }
 
                     if (selectedExercise != ExerciseType.None)
@@ -224,12 +224,12 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         bool isCorrect = false;
         switch (selectedExercise)
         {
-            case ExerciseType.Squat:       if (message == "1") isCorrect = true; break;
-            case ExerciseType.Lunge:       if (message == "2") isCorrect = true; break;
-            case ExerciseType.HighKnee:    if (message == "3") isCorrect = true; break;
-            case ExerciseType.Climbers:    if (message == "4") isCorrect = true; break;
-            case ExerciseType.AltArmLeg:   if (message == "5") isCorrect = true; break;
-            case ExerciseType.ChairTricep: if (message == "6") isCorrect = true; break;
+            case ExerciseType.Squat:       if (message == "0") isCorrect = true; break;
+            case ExerciseType.Lunge:       if (message == "1") isCorrect = true; break;
+            case ExerciseType.HighKnee:    if (message == "2") isCorrect = true; break;
+            case ExerciseType.Climbers:    if (message == "3") isCorrect = true; break;
+            case ExerciseType.AltArmLeg:   if (message == "4") isCorrect = true; break;
+            case ExerciseType.ChairTricep: if (message == "5") isCorrect = true; break;
         }
 
         if (isCorrect)
@@ -240,7 +240,7 @@ public class scan_qrcode_exercise_final : MonoBehaviour
         else
         {
             Debug.Log($"{TAG} WRONG MOVE: Expected {selectedExercise}, but got action {message}");
-            if (int.TryParse(message, out int move) && move >= 1 && move <= 6)
+            if (int.TryParse(message, out int move) && move >= 0 && move <= 5)
             {
                 Debug.Log($"{TAG} Wrong move detected: {message}");
                 triggerWrongMoveUI = true;

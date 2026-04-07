@@ -4498,63 +4498,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1679054237}
   m_CullTransparentMesh: 1
---- !u!1001 &1697585802
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_Name
-      value: squats_fire_Oak_Tree
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 2384.2275
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -1376.3347
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.000000021855694
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6066321508721016312, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
 --- !u!4 &1765540924 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6605111590819766859, guid: 2bb019c4586222e4881292b66c2d2ac3, type: 3}
@@ -5714,7 +5657,7 @@ MonoBehaviour:
   playAgainButton: {fileID: 1464951999}
   finalEndButton: {fileID: 1885759663}
   waterBucketPrefab: {fileID: 6802447506477772605, guid: b76deb50b0029974d99911150ed1003b, type: 3}
-  rainEffectPrefab: {fileID: 1000010302070858, guid: 9a872c22238a0a341b681575450d1b4c, type: 3}
+  rainEffectPrefab: {fileID: 8363755088263445428, guid: e4e29c120427e2d45a6ca7dc913c1072, type: 3}
   bucketSpawnDistance: 0.8
   bucketTriggerDistance: 0.6
   rainDuration: 30
@@ -5830,4 +5773,3 @@ SceneRoots:
   - {fileID: 202349183}
   - {fileID: 1864559703}
   - {fileID: 678173552}
-  - {fileID: 1697585802}
