@@ -1,6 +1,6 @@
 // Attach to XR Origin.
 // This script handles ONLY core game logic:
-//   QR scanning → anchor locking → exercise selection (via MQTT) →
+//   QR scanning → start button → walk to circle → exercise selection (via MQTT) →
 //   countdown → gameplay timer → cat spawning → round end/restart.
 //
 // All special effects are handled by SpecialEffectManager + individual effect scripts.
@@ -30,6 +30,7 @@ public class overall_game_play : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private GameObject      scanningPanel;
     [SerializeField] private GameObject      startPanel;
+    [SerializeField] private GameObject      goToStartLocationPanel;  // NEW: Panel telling user to walk to circle
     [SerializeField] private GameObject      waitingExercisePanel;
     [SerializeField] private GameObject      exerciseSelectedPanel;
     [SerializeField] private TextMeshProUGUI exerciseText;
@@ -43,6 +44,11 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private GameObject      startButton;
     [SerializeField] private GameObject      wrongMovePanel;
+
+    [Header("Start Location Settings")]
+    [SerializeField] private GameObject startCirclePrefab;           // NEW: Circle prefab to spawn on ground
+    [SerializeField] private float      circleSpawnDistance = 0.8f;  // NEW: Distance behind building (metres)
+    [SerializeField] private float      circleTriggerDistance = 0.6f; // NEW: How close user must be to circle
 
     [Header("Game Settings")]
     [SerializeField] private float gameDuration = 60f;
@@ -83,7 +89,12 @@ public class overall_game_play : MonoBehaviour
     private bool    isCountingDown  = false;
     private bool    triggerWrongMoveUI = false;
     private bool    isTimePaused    = false;
+    private int     catMultiplier   = 1;
     private GameObject currentActiveExerciseModel;
+
+    // NEW: Start location state
+    private bool       isWaitingAtStartLocation = false;
+    private GameObject spawnedStartCircle;
 
     // ──────────────────────────────────────────────
     // Reference to the effect coordinator
@@ -108,9 +119,11 @@ public class overall_game_play : MonoBehaviour
         if (scanningPanel          != null) scanningPanel.SetActive(true);
         if (waitingExercisePanel   != null) waitingExercisePanel.SetActive(false);
         if (exerciseSelectedPanel  != null) exerciseSelectedPanel.SetActive(false);
+        if (goToStartLocationPanel != null) goToStartLocationPanel.SetActive(false);  // NEW
 
         timeLeft        = gameDuration;
         catCount        = 0;
+        catMultiplier   = 1;
         catCountText.text = "0";
 
         // Initialize SpecialEffectManager — it auto-discovers ISpecialEffect components
@@ -118,12 +131,13 @@ public class overall_game_play : MonoBehaviour
         if (effectManager != null)
         {
             effectManager.Initialize(
-                getBuildingPos:        GetBuildingPosition,
-                addCatsCallback:       AddBonusCats,
-                setTimePausedCallback: SetTimePaused,
-                spawnCatCallback:      SpawnCatFromCube,  // NEW: Pass cat spawn callback
-                gameActiveGetter:      () => isGameActive,
-                timeLeftGetter:        () => timeLeft
+                getBuildingPos:           GetBuildingPosition,
+                addCatsCallback:          AddBonusCats,
+                setTimePausedCallback:    SetTimePaused,
+                spawnCatCallback:         SpawnCatFromCube,
+                setCatMultiplierCallback: SetCatMultiplier,
+                gameActiveGetter:         () => isGameActive,
+                timeLeftGetter:           () => timeLeft
             );
             Debug.Log($"{TAG} SpecialEffectManager found and initialized.");
         }
@@ -153,13 +167,28 @@ public class overall_game_play : MonoBehaviour
 
     void Update()
     {
+        // NEW: Check if user has reached the start location circle
+        if (isWaitingAtStartLocation && spawnedStartCircle != null)
+        {
+            CheckStartLocationProximity();
+        }
+
         // Drain the thread-safe queue from MQTT callbacks
         if (mqttSpawnQueue.TryDequeue(out bool isCatSpawn))
         {
             if (isCatSpawn)
-                SpawnCatFromCube();
+            {
+                // SPAWN MULTIPLE CATS BASED ON MULTIPLIER
+                for (int i = 0; i < catMultiplier; i++)
+                {
+                    SpawnCatFromCube();
+                }
+                Debug.Log($"{TAG} 🐱 Spawned {catMultiplier} cat(s) for this rep (multiplier x{catMultiplier})");
+            }
             else
+            {
                 StartCoroutine(StartCountdownRoutine());
+            }
         }
 
         // Core timer
@@ -169,7 +198,16 @@ public class overall_game_play : MonoBehaviour
             if (timeLeft > 0 && !isTimePaused)
             {
                 timeLeft -= Time.deltaTime;
-                timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
+                
+                // Show multiplier in timer if active
+                if (catMultiplier > 1)
+                {
+                    timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s 💚x{catMultiplier}";
+                }
+                else
+                {
+                    timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
+                }
             }
             // Show "FROZEN" or similar when paused
             else if (isTimePaused)
@@ -194,6 +232,93 @@ public class overall_game_play : MonoBehaviour
             if (wrongMoveCoroutine == null)
                 wrongMoveCoroutine = StartCoroutine(ShowWrongMoveRoutine());
         }
+    }
+
+    // ──────────────────────────────────────────────
+    // NEW: Start Location Circle Logic
+    // ──────────────────────────────────────────────
+    
+    /// <summary>
+    /// Spawns the start circle and shows the "go to start location" panel.
+    /// Called when user presses the Start button.
+    /// </summary>
+    private void SpawnStartCircle()
+    {
+        Vector3 buildingPos = GetBuildingPosition();
+        
+        // Spawn circle 0.8m BEHIND the building (negative Z direction)
+        // Also place it on the ground (y = 0 or slightly above)
+        Vector3 circlePos = buildingPos + new Vector3(0f, 0f, -circleSpawnDistance);
+        
+        // Adjust Y to be on the ground (you may need to tweak this based on your AR setup)
+        circlePos.y = buildingPos.y;  // Same height as building anchor, or set to 0
+        
+        spawnedStartCircle = Instantiate(startCirclePrefab, circlePos, Quaternion.identity);
+        
+        // Rotate circle to lay flat on ground (if needed - depends on your prefab orientation)
+        // spawnedStartCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        
+        Debug.Log($"{TAG} 🎯 Start circle spawned at {circlePos} ({circleSpawnDistance}m behind building)");
+        Debug.Log($"{TAG} 📍 Building position: {buildingPos}");
+        Debug.Log($"{TAG} 📏 User needs to be within {circleTriggerDistance}m of circle");
+    }
+
+    /// <summary>
+    /// Checks if the phone/user is close enough to the start circle.
+    /// Called every frame while waiting.
+    /// </summary>
+    private void CheckStartLocationProximity()
+    {
+        Vector3 phonePos = Camera.main.transform.position;
+        Vector3 circlePos = spawnedStartCircle.transform.position;
+        
+        // Calculate horizontal distance only (ignore Y/height difference)
+        float horizontalDistance = Vector2.Distance(
+            new Vector2(phonePos.x, phonePos.z),
+            new Vector2(circlePos.x, circlePos.z)
+        );
+        
+        // Debug log every 30 frames (twice per second)
+        if (Time.frameCount % 30 == 0)
+        {
+            Debug.Log($"{TAG} 📏 Phone↔Circle dist: {horizontalDistance:F2}m (need < {circleTriggerDistance}m)");
+        }
+
+        if (horizontalDistance < circleTriggerDistance)
+        {
+            Debug.Log($"{TAG} ✅ User reached start location!");
+            OnReachedStartLocation();
+        }
+    }
+
+    /// <summary>
+    /// Called when user reaches the start circle.
+    /// Destroys circle, hides panel, continues to exercise selection.
+    /// </summary>
+    private void OnReachedStartLocation()
+    {
+        isWaitingAtStartLocation = false;
+
+        // Play sound effect
+        if (audioSource != null && clickSound != null)
+            audioSource.PlayOneShot(clickSound);
+
+        // Destroy the circle
+        if (spawnedStartCircle != null)
+        {
+            Destroy(spawnedStartCircle);
+            Debug.Log($"{TAG} 🎯 Start circle destroyed.");
+        }
+
+        // Hide the "go to start location" panel
+        if (goToStartLocationPanel != null)
+            goToStartLocationPanel.SetActive(false);
+
+        // Show waiting for exercise panel
+        if (waitingExercisePanel != null)
+            waitingExercisePanel.SetActive(true);
+
+        Debug.Log($"{TAG} ▶️ Ready for exercise selection via MQTT.");
     }
 
     // ──────────────────────────────────────────────
@@ -284,6 +409,7 @@ public class overall_game_play : MonoBehaviour
     {
         isGameActive = false;
         isTimePaused = false;
+        catMultiplier = 1;
         timeLeft     = 0;
 
         // Stop looping sounds
@@ -320,6 +446,40 @@ public class overall_game_play : MonoBehaviour
     // ──────────────────────────────────────────────
     // Public UI callbacks
     // ──────────────────────────────────────────────
+    
+    /// <summary>
+    /// Called when user presses the Start button after QR detection.
+    /// Now spawns the start circle instead of going directly to exercise selection.
+    /// </summary>
+    public void LockAnchor()
+    {
+        if (audioSource != null && clickSound != null)
+            audioSource.PlayOneShot(clickSound);
+
+        isAnchored = true;
+        
+        // Hide start button and start panel
+        if (startButton != null) startButton.SetActive(false);
+        if (startPanel != null) startPanel.SetActive(false);
+
+        // Lock the anchor position
+        foreach (var entry in spawnedCubes)
+            Debug.Log($"{TAG} Anchor locked at {entry.Value.transform.position}");
+
+        // Disable AR tracking
+        trackedImageManager.enabled = false;
+
+        // NEW: Spawn the start circle and show "go to start location" panel
+        SpawnStartCircle();
+        
+        if (goToStartLocationPanel != null)
+            goToStartLocationPanel.SetActive(true);
+        
+        isWaitingAtStartLocation = true;
+        
+        Debug.Log($"{TAG} 🎯 Waiting for user to walk to start location...");
+    }
+
     public void PlayAgain()
     {
         if (audioSource != null && clickSound != null) audioSource.PlayOneShot(clickSound);
@@ -329,12 +489,20 @@ public class overall_game_play : MonoBehaviour
         timeLeft         = gameDuration;
         isGameActive     = false;
         isTimePaused     = false;
-        waitingExercisePanel.SetActive(true);
+        catMultiplier    = 1;
+        
+        // NEW: Spawn circle again for new round
+        SpawnStartCircle();
+        
+        if (goToStartLocationPanel != null)
+            goToStartLocationPanel.SetActive(true);
+        
+        isWaitingAtStartLocation = true;
 
         // Reset all effects for the new round
         effectManager?.ResetForNewRound();
 
-        Debug.Log($"{TAG} PlayAgain: Ready for new MQTT command.");
+        Debug.Log($"{TAG} PlayAgain: Walk to start location for new round.");
     }
 
     public void ShowFinalResults()
@@ -350,30 +518,11 @@ public class overall_game_play : MonoBehaviour
         Debug.Log($"{TAG} Final score: {catCount}");
     }
 
-    public void LockAnchor()
-    {
-        if (audioSource != null && clickSound != null)
-            audioSource.PlayOneShot(clickSound);
-
-        isAnchored = true;
-        startButton.SetActive(false);
-        startPanel.SetActive(false);
-        waitingExercisePanel.SetActive(true);
-
-        foreach (var entry in spawnedCubes)
-            Debug.Log($"{TAG} Anchor locked at {entry.Value.transform.position}");
-
-        trackedImageManager.enabled = false;
-    }
-
     // ──────────────────────────────────────────────
     // Cat spawning
     // ──────────────────────────────────────────────
     public void SpawnCatFromCube()
     {
-        // NOTE: Removed "if (!isGameActive) return;" so effects can spawn cats even after game ends
-        // The effect scripts handle their own timing
-
         foreach (var cubeEntry in spawnedCubes)
         {
             GameObject cube = cubeEntry.Value;
@@ -523,6 +672,13 @@ public class overall_game_play : MonoBehaviour
     {
         isTimePaused = isPaused;
         Debug.Log($"{TAG} ⏱️ Time is now {(isPaused ? "PAUSED ❄️" : "RESUMED ▶️")}");
+    }
+
+    /// <summary>Sets the cat spawn multiplier. Called by SpecialEffectManager (from GrowthEffect).</summary>
+    private void SetCatMultiplier(int multiplier, float duration)
+    {
+        catMultiplier = multiplier;
+        Debug.Log($"{TAG} 🚀 Cat multiplier set to x{multiplier}");
     }
 
     // ──────────────────────────────────────────────

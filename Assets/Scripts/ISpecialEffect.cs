@@ -1,6 +1,6 @@
 // ISpecialEffect.cs
 // Drop this file anywhere in your Assets/Scripts folder.
-// Every special effect (Water, Ice, Fire, etc.) must implement this interface.
+// Every special effect (Water, Ice, Growth, etc.) must implement this interface.
 // The SpecialEffectManager uses this to communicate with all effects generically.
 
 using UnityEngine;
@@ -49,4 +49,13 @@ public interface ISpecialEffect
     /// Subscribe to this in SpecialEffectManager to forward to the main game's SpawnCatFromCube().
     /// </summary>
     event System.Action OnSpawnCat;
+    
+    /// <summary>
+    /// Invoked by the effect when cat spawn multiplier should change.
+    /// Parameters: (int multiplier, float duration)
+    /// multiplier = how many cats per rep (e.g., 3 means 3 cats per rep)
+    /// duration = how long the multiplier lasts (0 = permanent until changed)
+    /// Subscribe to this in SpecialEffectManager to forward to the main game.
+    /// </summary>
+    event System.Action<int, float> OnSetCatMultiplier;
 }

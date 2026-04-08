@@ -1,66 +1,69 @@
-// IceEffect.cs
+// GrowthEffect.cs
 // Attach to the SAME GameObject as overall_game_play (XR Origin).
-// This is a self-contained MonoBehaviour that handles ONLY the ice shard mechanic.
+// This is a self-contained MonoBehaviour that handles ONLY the growth/multiplier mechanic.
 // It implements ISpecialEffect so SpecialEffectManager can drive it automatically.
 //
 // WHAT IT DOES:
-//   • At specified time remaining, spawns a blue ice shard 0.15m away from the building.
+//   • At 50 s remaining, spawns a green ice shard in front of the building.
 //   • Plays crystal_appear sound while shard is visible.
 //   • When the phone comes within trigger distance of the shard, it "collects" it.
-//   • Collection: destroys shard, spawns ice VFX around building, PAUSES TIME for 15 seconds.
-//   • During freeze time, user can do as many reps as possible.
-//   • After freeze duration, time resumes and gameplay continues normally.
+//   • Collection: destroys shard, spawns green orb shield at building for 10 seconds.
+//   • During shield time, every rep spawns 3 cats instead of 1!
+//   • After shield duration, multiplier resets to 1x, gameplay continues normally.
 //
 // IMPORTANT: This script uses its OWN AudioSource so it doesn't interrupt the fire sound!
 
 using UnityEngine;
 using System.Collections;
 
-public class IceEffect : MonoBehaviour, ISpecialEffect
+public class GrowthEffect : MonoBehaviour, ISpecialEffect
 {
-    private const string TAG = "[ICE_EFFECT]";
+    private const string TAG = "[GROWTH_EFFECT]";
 
     // ──────────────────────────────────────────────
     // Inspector fields
     // ──────────────────────────────────────────────
-    [Header("Ice Shard Prefabs")]
-    [SerializeField] private GameObject iceShardPrefab;    // The collectible blue ice shard
-    [SerializeField] private GameObject iceEffectPrefab;   // VFX that spawns around building when collected
+    [Header("Growth Shard Prefabs")]
+    [SerializeField] private GameObject greenShardPrefab;    // The collectible green ice shard
+    [SerializeField] private GameObject greenOrbPrefab;      // Green orb shield VFX around building
 
-    [Header("Ice Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 30f;   // Seconds left when shard appears
-    [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres away from building
+    [Header("Growth Shard Settings")]
+    [SerializeField] private float shardSpawnTime       = 50f;   // Seconds left when shard appears
+    [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres in front of building
     [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
-    [SerializeField] private float freezeDuration       = 15f;   // Seconds time is paused
+    [SerializeField] private float shieldDuration       = 10f;   // Seconds the multiplier is active
+    [SerializeField] private int   catMultiplier        = 3;     // How many cats per rep during shield
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioClip   crystalAppearSound;  // Looping sound while shard is visible
     [SerializeField] private AudioClip   collectSound;        // One-shot SFX when shard collected
-    [SerializeField] private AudioClip   freezeSound;         // Looping sound during freeze time
+    [SerializeField] private AudioClip   shieldSound;         // Looping sound during shield time
 
     [Header("Volume Settings")]
     [SerializeField] private float crystalVolume = 0.5f;
-    [SerializeField] private float freezeVolume  = 1.0f;
+    [SerializeField] private float shieldVolume  = 1.0f;
 
     // ──────────────────────────────────────────────
     // ISpecialEffect — public API
     // ──────────────────────────────────────────────
-    public string EffectName => "Ice Shard";
-    public event System.Action<int> OnBonusCatsEarned;       // Not used
-    public event System.Action<bool> OnTimePause;            // Used to pause/resume time
-    public event System.Action OnSpawnCat;                   // Not used
-    public event System.Action<int, float> OnSetCatMultiplier; // Not used
+    public string EffectName => "Growth Shard";
+    public event System.Action<int> OnBonusCatsEarned;   // Not used by this effect
+    public event System.Action<bool> OnTimePause;        // Not used by this effect
+    public event System.Action OnSpawnCat;               // Not used by this effect
+    
+    // NEW: Event to set cat multiplier (multiplier, duration)
+    public event System.Action<int, float> OnSetCatMultiplier;
 
     // ──────────────────────────────────────────────
     // Internal state
     // ──────────────────────────────────────────────
     private GameObject spawnedShard;
-    private GameObject spawnedIceEffect;
+    private GameObject spawnedOrb;
     private bool       shardHasSpawned = false;
     private bool       shardCollected  = false;
-    private bool       isFreezing      = false;
+    private bool       isShieldActive  = false;
 
     // ──────────────────────────────────────────────
     // ISpecialEffect — Tick (called every frame by SpecialEffectManager)
@@ -100,7 +103,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         CleanUp();
         shardHasSpawned = false;
         shardCollected  = false;
-        isFreezing      = false;
+        isShieldActive  = false;
         Debug.Log($"{TAG} 🔄 Reset for new round.");
     }
 
@@ -111,10 +114,10 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     {
         shardHasSpawned = true;
         
-        // Spawn shard to the LEFT of the building (negative X)
-        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0f, 0f);
-        spawnedShard = Instantiate(iceShardPrefab, shardPos, Quaternion.identity);
-        Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — ice shard spawned at {shardPos}.");
+        // Spawn shard in FRONT of the building (positive Z)
+        Vector3 shardPos = buildingPosition + new Vector3(0f, 0f, shardSpawnDistance);
+        spawnedShard = Instantiate(greenShardPrefab, shardPos, Quaternion.identity);
+        Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — green shard spawned at {shardPos}.");
 
         // Start looping crystal appear sound
         if (effectAudioSource != null && crystalAppearSound != null)
@@ -141,7 +144,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
 
         // Destroy shard
         Destroy(spawnedShard);
-        Debug.Log($"{TAG} ❄️ Ice shard collected and destroyed.");
+        Debug.Log($"{TAG} 💚 Green shard collected and destroyed.");
 
         // Play one-shot collect SFX
         if (effectAudioSource != null && collectSound != null)
@@ -149,72 +152,77 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.PlayOneShot(collectSound);
         }
 
-        // Spawn ice effect at building position
-        spawnedIceEffect = Instantiate(iceEffectPrefab, buildingPosition, Quaternion.identity);
-        Debug.Log($"{TAG} ❄️ Ice effect spawned at building: {buildingPosition}.");
+        // Spawn green orb shield at building position
+        spawnedOrb = Instantiate(greenOrbPrefab, buildingPosition, Quaternion.identity);
+        Debug.Log($"{TAG} 💚 Green orb shield spawned at building: {buildingPosition}.");
 
-        // Start freeze timer
-        StartCoroutine(FreezeRoutine());
+        // Start shield timer
+        StartCoroutine(ShieldRoutine());
     }
 
-    private IEnumerator FreezeRoutine()
+    private IEnumerator ShieldRoutine()
     {
-        isFreezing = true;
-        Debug.Log($"{TAG} ❄️ TIME FROZEN for {freezeDuration} seconds! Do as many reps as you can!");
+        isShieldActive = true;
+        Debug.Log($"{TAG} 💚 GROWTH SHIELD ACTIVE for {shieldDuration} seconds! Every rep = {catMultiplier} cats!");
 
-        // PAUSE TIME
-        OnTimePause?.Invoke(true);
-        Debug.Log($"{TAG} ⏸️ Time pause event fired (pause=true).");
+        // ACTIVATE MULTIPLIER - notify the main game
+        OnSetCatMultiplier?.Invoke(catMultiplier, shieldDuration);
+        Debug.Log($"{TAG} 🚀 Cat multiplier set to x{catMultiplier} for {shieldDuration}s.");
 
-        // Start looping freeze sound
-        if (effectAudioSource != null && freezeSound != null)
+        // Start looping shield sound
+        if (effectAudioSource != null && shieldSound != null)
         {
-            effectAudioSource.clip = freezeSound;
+            effectAudioSource.clip = shieldSound;
             effectAudioSource.loop = true;
-            effectAudioSource.volume = freezeVolume;
+            effectAudioSource.volume = shieldVolume;
             effectAudioSource.Play();
-            Debug.Log($"{TAG} 🔊 Freeze sound started (volume {freezeVolume}).");
+            Debug.Log($"{TAG} 🔊 Shield sound started (volume {shieldVolume}).");
         }
 
-        // Wait for freeze duration (using real time)
-        yield return new WaitForSecondsRealtime(freezeDuration);
+        // Wait for shield duration
+        yield return new WaitForSeconds(shieldDuration);
 
-        // Stop freeze sound
+        // Stop shield sound
         if (effectAudioSource != null && effectAudioSource.isPlaying)
         {
             effectAudioSource.Stop();
             effectAudioSource.loop = false;
-            Debug.Log($"{TAG} 🔇 Freeze sound stopped.");
+            Debug.Log($"{TAG} 🔇 Shield sound stopped.");
         }
 
-        // Destroy ice effect
-        if (spawnedIceEffect != null)
+        // Destroy orb
+        if (spawnedOrb != null)
         {
-            Destroy(spawnedIceEffect);
-            Debug.Log($"{TAG} ☀️ Ice effect ended.");
+            Destroy(spawnedOrb);
+            Debug.Log($"{TAG} 💚 Green orb shield disappeared.");
         }
 
-        isFreezing = false;
+        isShieldActive = false;
 
-        // RESUME TIME
-        OnTimePause?.Invoke(false);
-        Debug.Log($"{TAG} ▶️ Time pause event fired (pause=false). Game resumes!");
+        // RESET MULTIPLIER - notify the main game (multiplier back to 1)
+        OnSetCatMultiplier?.Invoke(1, 0f);
+        Debug.Log($"{TAG} ▶️ Cat multiplier reset to x1. Game resumes normally!");
     }
 
     private void CleanUp()
     {
+        // Stop all coroutines
         StopAllCoroutines();
 
-        if (isFreezing)
+        // If shield was active, reset multiplier
+        if (isShieldActive)
         {
-            OnTimePause?.Invoke(false);
-            Debug.Log($"{TAG} ▶️ Cleanup: Resuming time.");
+            OnSetCatMultiplier?.Invoke(1, 0f);
+            Debug.Log($"{TAG} ▶️ Cleanup: Resetting multiplier to x1.");
         }
 
+        // Stop any playing audio and reset volume
         if (effectAudioSource != null)
         {
             if (effectAudioSource.isPlaying)
+            {
                 effectAudioSource.Stop();
+            }
             effectAudioSource.loop = false;
             effectAudioSource.volume = 1f;
             Debug.Log($"{TAG} 🔇 Audio stopped during cleanup.");
@@ -225,10 +233,10 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
             Destroy(spawnedShard);
             Debug.Log($"{TAG} 🧹 Shard cleaned up.");
         }
-        if (spawnedIceEffect != null)
+        if (spawnedOrb != null)
         {
-            Destroy(spawnedIceEffect);
-            Debug.Log($"{TAG} 🧹 Ice effect cleaned up.");
+            Destroy(spawnedOrb);
+            Debug.Log($"{TAG} 🧹 Orb cleaned up.");
         }
     }
 }

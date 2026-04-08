@@ -8,7 +8,7 @@
 //   • Plays crystal_appear sound while bucket is visible (on its OWN AudioSource).
 //   • When the phone comes within 0.3 m of the bucket, it "collects" it.
 //   • Collection: destroys bucket, stops crystal sound, spawns rain VFX, plays rain sound.
-//   • Rain auto-despawns after rainDuration seconds, then SPAWNS CATS VISUALLY (not just +5).
+//   • Rain auto-despawns after rainDuration seconds, then SPAWNS CATS VISUALLY.
 //
 // IMPORTANT: This script uses its OWN AudioSource so it doesn't interrupt the fire sound!
 
@@ -32,9 +32,9 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private float bucketTriggerDistance = 0.30f; // Metres phone must be within
     [SerializeField] private float rainDuration          = 5f;    // Seconds rain lasts
     [SerializeField] private int   bonusCatSpawns        = 15;    // Number of cats to spawn visually
-    [SerializeField] private float catSpawnInterval      = 0.2f;  // Seconds between each cat spawn
+    [SerializeField] private float catSpawnInterval      = 0.3f;  // Seconds between each cat spawn
 
-    [Header("Audio")]
+    [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioClip   collectSound;           // One-shot SFX when bucket collected
@@ -49,11 +49,10 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     // ISpecialEffect — public API
     // ──────────────────────────────────────────────
     public string EffectName => "Water Bucket";
-    public event System.Action<int> OnBonusCatsEarned;      // Not used anymore, but required by interface
-    public event System.Action<bool> OnTimePause;           // Not used by this effect, but required by interface
-    
-    // NEW: Event to trigger visual cat spawning
-    public event System.Action OnSpawnCat;
+    public event System.Action<int> OnBonusCatsEarned;           // Not used
+    public event System.Action<bool> OnTimePause;                // Not used
+    public event System.Action OnSpawnCat;                       // Used to spawn cats visually
+    public event System.Action<int, float> OnSetCatMultiplier;   // Not used
 
     // ──────────────────────────────────────────────
     // Internal state
@@ -116,7 +115,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         spawnedBucket = Instantiate(waterBucketPrefab, bucketPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {bucketSpawnTime}s left — bucket spawned at {bucketPos}.");
 
-        // Start looping crystal appear sound at reduced volume
+        // Start looping crystal appear sound
         if (effectAudioSource != null && crystalAppearSound != null)
         {
             effectAudioSource.clip = crystalAppearSound;
@@ -163,7 +162,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         isRaining = true;
         Debug.Log($"{TAG} 🌧️ Rain will last {rainDuration} s.");
 
-        // Start looping rain sound at full volume
+        // Start looping rain sound
         if (effectAudioSource != null && rainSound != null)
         {
             effectAudioSource.clip = rainSound;
@@ -190,7 +189,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         }
         isRaining = false;
 
-        // SPAWN CATS VISUALLY instead of just adding bonus
+        // SPAWN CATS VISUALLY
         Debug.Log($"{TAG} 🐱 Starting to spawn {bonusCatSpawns} cats visually!");
         StartCoroutine(SpawnCatsRoutine());
     }
@@ -199,11 +198,8 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     {
         for (int i = 0; i < bonusCatSpawns; i++)
         {
-            // Trigger cat spawn via event
             OnSpawnCat?.Invoke();
             Debug.Log($"{TAG} 🐱 Spawned cat {i + 1}/{bonusCatSpawns}");
-            
-            // Wait before spawning next cat
             yield return new WaitForSeconds(catSpawnInterval);
         }
         
@@ -212,16 +208,12 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
 
     private void CleanUp()
     {
-        // Stop all coroutines
         StopAllCoroutines();
 
-        // Stop any playing audio and reset volume
         if (effectAudioSource != null)
         {
             if (effectAudioSource.isPlaying)
-            {
                 effectAudioSource.Stop();
-            }
             effectAudioSource.loop = false;
             effectAudioSource.volume = 1f;
             Debug.Log($"{TAG} 🔇 Audio stopped during cleanup.");

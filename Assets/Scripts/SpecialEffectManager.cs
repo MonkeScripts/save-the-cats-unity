@@ -14,12 +14,13 @@ public class SpecialEffectManager : MonoBehaviour
     // ──────────────────────────────────────────────
     // Dependencies injected by the main game script
     // ──────────────────────────────────────────────
-    private System.Func<Vector3> getBuildingPosition;
-    private System.Action<int>   addCats;
-    private System.Action<bool>  setTimePaused;
-    private System.Action        spawnCat;        // NEW: Callback to spawn a cat visually
-    private System.Func<bool>    isGameActive;
-    private System.Func<float>   getTimeLeft;
+    private System.Func<Vector3>      getBuildingPosition;
+    private System.Action<int>        addCats;
+    private System.Action<bool>       setTimePaused;
+    private System.Action             spawnCat;
+    private System.Action<int, float> setCatMultiplier;  // NEW: Callback to set cat multiplier
+    private System.Func<bool>         isGameActive;
+    private System.Func<float>        getTimeLeft;
 
     private List<ISpecialEffect> effects = new();
     private bool isInitialized = false;
@@ -28,17 +29,19 @@ public class SpecialEffectManager : MonoBehaviour
     // Called ONCE by the main script during Awake/Start
     // ──────────────────────────────────────────────
     public void Initialize(
-        System.Func<Vector3> getBuildingPos,
-        System.Action<int>   addCatsCallback,
-        System.Action<bool>  setTimePausedCallback,
-        System.Action        spawnCatCallback,      // NEW parameter
-        System.Func<bool>    gameActiveGetter,
-        System.Func<float>   timeLeftGetter)
+        System.Func<Vector3>      getBuildingPos,
+        System.Action<int>        addCatsCallback,
+        System.Action<bool>       setTimePausedCallback,
+        System.Action             spawnCatCallback,
+        System.Action<int, float> setCatMultiplierCallback,  // NEW parameter
+        System.Func<bool>         gameActiveGetter,
+        System.Func<float>        timeLeftGetter)
     {
         getBuildingPosition = getBuildingPos;
         addCats             = addCatsCallback;
         setTimePaused       = setTimePausedCallback;
-        spawnCat            = spawnCatCallback;     // NEW
+        spawnCat            = spawnCatCallback;
+        setCatMultiplier    = setCatMultiplierCallback;  // NEW
         isGameActive        = gameActiveGetter;
         getTimeLeft         = timeLeftGetter;
 
@@ -79,7 +82,8 @@ public class SpecialEffectManager : MonoBehaviour
             // Subscribe to ALL events
             effect.OnBonusCatsEarned += HandleBonusCats;
             effect.OnTimePause += HandleTimePause;
-            effect.OnSpawnCat += HandleSpawnCat;  // NEW
+            effect.OnSpawnCat += HandleSpawnCat;
+            effect.OnSetCatMultiplier += HandleSetCatMultiplier;  // NEW
             
             effects.Add(effect);
             Debug.Log($"{TAG} ✅ Registered effect: '{effect.EffectName}'");
@@ -89,7 +93,7 @@ public class SpecialEffectManager : MonoBehaviour
         
         if (effects.Count == 0)
         {
-            Debug.LogError($"{TAG} ❌ NO EFFECTS FOUND! Make sure WaterBucketEffect and IceEffect scripts are attached to the same GameObject as this script!");
+            Debug.LogError($"{TAG} ❌ NO EFFECTS FOUND! Make sure effect scripts are attached to the same GameObject as this script!");
         }
     }
 
@@ -165,6 +169,13 @@ public class SpecialEffectManager : MonoBehaviour
         spawnCat?.Invoke();
     }
 
+    private void HandleSetCatMultiplier(int multiplier, float duration)
+    {
+        Debug.Log($"{TAG} 🚀 HandleSetCatMultiplier received: x{multiplier} for {duration}s");
+        setCatMultiplier?.Invoke(multiplier, duration);
+        Debug.Log($"{TAG} 🚀 Forwarded multiplier x{multiplier} to game script.");
+    }
+
     private void OnDestroy()
     {
         foreach (var effect in effects)
@@ -173,7 +184,8 @@ public class SpecialEffectManager : MonoBehaviour
             {
                 effect.OnBonusCatsEarned -= HandleBonusCats;
                 effect.OnTimePause -= HandleTimePause;
-                effect.OnSpawnCat -= HandleSpawnCat;  // NEW
+                effect.OnSpawnCat -= HandleSpawnCat;
+                effect.OnSetCatMultiplier -= HandleSetCatMultiplier;  // NEW
             }
         }
     }
