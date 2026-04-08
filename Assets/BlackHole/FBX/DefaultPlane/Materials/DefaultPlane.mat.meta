@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fc0c091d115c79a4fbbe50f9892044cd
+timeCreated: 1444824159
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 47962
+  packageName: Black Hole
+  packageVersion: 1.0
+  assetPath: Assets/BlackHole/FBX/DefaultPlane/Materials/DefaultPlane.mat
+  uploadId: 410323

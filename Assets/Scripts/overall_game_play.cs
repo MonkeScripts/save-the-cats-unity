@@ -472,6 +472,22 @@ public class overall_game_play : MonoBehaviour
         SpawnExercisePrefab();
         isGameActive   = true;
         isCountingDown = false;
+
+        // NEW: Set duration based on exercise type
+        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null &&
+                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
+
+        if (isSpecialMode)
+        {
+            timeLeft = 20f;
+            Debug.Log($"{TAG} ⏱️ Special mode: game duration set to 20 seconds.");
+        }
+        else
+        {
+            timeLeft = gameDuration;
+            Debug.Log($"{TAG} ⏱️ Normal mode: game duration set to {gameDuration} seconds.");
+        }
+
         timerPanel.SetActive(true);
         catCountPanel.SetActive(true);
         timerText.gameObject.SetActive(true);
