@@ -597,32 +597,68 @@ public class overall_game_play : MonoBehaviour
     // ──────────────────────────────────────────────
     public void SpawnCatFromCube()
     {
-        foreach (var cubeEntry in spawnedCubes)
-        {
-            GameObject cube = cubeEntry.Value;
-            if (cube == null) continue;
+        // NEW: Determine spawn origin based on special mode
+        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null &&
+                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
 
+        bool useStartCircle = isSpecialMode &&
+                            StartCircleAnchor.Instance != null &&
+                            StartCircleAnchor.Instance.HasPosition();
+
+        if (useStartCircle)
+        {
+            // ── Special mode: spawn cats from START CIRCLE position ──
             catCount++;
             if (catCountText != null) catCountText.text = $"{catCount}";
 
             if (audioSource != null && meowSound != null)
                 audioSource.PlayOneShot(meowSound);
 
-            Vector3    spawnPos      = cube.transform.position;
-            Quaternion spawnRotation = cube.transform.rotation;
+            Vector3    spawnPos      = StartCircleAnchor.Instance.GetStartCirclePosition();
+            Quaternion spawnRotation = Quaternion.identity;
             int        choice        = Random.Range(0, 4);
 
             switch (choice)
             {
-                case 0: spawnPos += cube.transform.right   *  0.15f; spawnRotation *= Quaternion.Euler(0,  90, 0); break;
-                case 1: spawnPos += cube.transform.right   * -0.15f; spawnRotation *= Quaternion.Euler(0, -90, 0); break;
-                case 2: spawnPos += cube.transform.forward *  0.15f; spawnRotation *= Quaternion.Euler(0,   0, 0); break;
-                case 3: spawnPos += cube.transform.forward * -0.15f; spawnRotation *= Quaternion.Euler(0, 180, 0); break;
+                case 0: spawnPos += Vector3.right   *  0.15f; spawnRotation = Quaternion.Euler(0,  90, 0); break;
+                case 1: spawnPos += Vector3.right   * -0.15f; spawnRotation = Quaternion.Euler(0, -90, 0); break;
+                case 2: spawnPos += Vector3.forward *  0.15f; spawnRotation = Quaternion.Euler(0,   0, 0); break;
+                case 3: spawnPos += Vector3.forward * -0.15f; spawnRotation = Quaternion.Euler(0, 180, 0); break;
             }
 
             Instantiate(catPrefab, spawnPos, spawnRotation);
-            Debug.Log($"{TAG} Cat spawned. Total: {catCount}");
-            return;
+            Debug.Log($"{TAG} 🐱 Cat spawned at START CIRCLE. Total: {catCount}");
+        }
+        else
+        {
+            // ── Normal mode: spawn cats from QR code position ──
+            foreach (var cubeEntry in spawnedCubes)
+            {
+                GameObject cube = cubeEntry.Value;
+                if (cube == null) continue;
+
+                catCount++;
+                if (catCountText != null) catCountText.text = $"{catCount}";
+
+                if (audioSource != null && meowSound != null)
+                    audioSource.PlayOneShot(meowSound);
+
+                Vector3    spawnPos      = cube.transform.position;
+                Quaternion spawnRotation = cube.transform.rotation;
+                int        choice        = Random.Range(0, 4);
+
+                switch (choice)
+                {
+                    case 0: spawnPos += cube.transform.right   *  0.15f; spawnRotation *= Quaternion.Euler(0,  90, 0); break;
+                    case 1: spawnPos += cube.transform.right   * -0.15f; spawnRotation *= Quaternion.Euler(0, -90, 0); break;
+                    case 2: spawnPos += cube.transform.forward *  0.15f; spawnRotation *= Quaternion.Euler(0,   0, 0); break;
+                    case 3: spawnPos += cube.transform.forward * -0.15f; spawnRotation *= Quaternion.Euler(0, 180, 0); break;
+                }
+
+                Instantiate(catPrefab, spawnPos, spawnRotation);
+                Debug.Log($"{TAG} 🐱 Cat spawned at QR CODE. Total: {catCount}");
+                return;
+            }
         }
     }
 

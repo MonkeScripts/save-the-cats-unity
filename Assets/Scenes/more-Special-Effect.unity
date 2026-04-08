@@ -7008,7 +7008,7 @@ MonoBehaviour:
   squatPrefab: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
   lungePrefab: {fileID: 2550208501883326453, guid: 6e7c0eef1ac658d4e9e4369c32929cda, type: 3}
   highKneePrefab: {fileID: 5121918052386228165, guid: 56e949906ac971e408ec6aec815d0b39, type: 3}
-  climbersPrefab: {fileID: 662608068145287718, guid: 242258e35e67b454eb6204741cd8b7f7, type: 3}
+  climbersPrefab: {fileID: 3486194686826201094, guid: 627c3b9dcc1dc584e94b186068783791, type: 3}
   altArmLegPrefab: {fileID: 662608068145287718, guid: 242258e35e67b454eb6204741cd8b7f7, type: 3}
   chairTricepPrefab: {fileID: 988390728006736675, guid: 083f18059286d01449b5d095bf7c05eb, type: 3}
   audioSource: {fileID: 678173551}
