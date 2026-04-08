@@ -49,6 +49,7 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private GameObject waterBucketInformationPanel;
     [SerializeField] private GameObject iceInformationPanel;
     [SerializeField] private GameObject growthInformationPanel;
+    [SerializeField] private GameObject bonus3Panel;
 
     [Header("Start Location Settings")]
     [SerializeField] private GameObject startCirclePrefab;
@@ -138,6 +139,7 @@ public class overall_game_play : MonoBehaviour
         if (waterBucketInformationPanel != null) waterBucketInformationPanel.SetActive(false);
         if (iceInformationPanel         != null) iceInformationPanel.SetActive(false);
         if (growthInformationPanel      != null) growthInformationPanel.SetActive(false);
+        if (bonus3Panel != null) bonus3Panel.SetActive(false);
 
         timeLeft        = gameDuration;
         catCount        = 0;
@@ -215,19 +217,11 @@ public class overall_game_play : MonoBehaviour
             if (timeLeft > 0 && !isTimePaused)
             {
                 timeLeft -= Time.deltaTime;
-                
-                if (catMultiplier > 1)
-                {
-                    timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s 💚x{catMultiplier}";
-                }
-                else
-                {
-                    timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
-                }
+                timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
             }
             else if (isTimePaused)
             {
-                timerText.text = $"❄️ FROZEN ❄️";
+                timerText.text = $"FROZEN";
             }
 
             effectManager?.Tick();
@@ -502,6 +496,7 @@ public class overall_game_play : MonoBehaviour
         if (waterBucketInformationPanel != null) waterBucketInformationPanel.SetActive(false);
         if (iceInformationPanel         != null) iceInformationPanel.SetActive(false);
         if (growthInformationPanel      != null) growthInformationPanel.SetActive(false);
+        if (bonus3Panel != null) bonus3Panel.SetActive(false);
 
         if (roundSummaryPanel != null)
         {
@@ -739,6 +734,20 @@ public class overall_game_play : MonoBehaviour
     {
         catMultiplier = multiplier;
         Debug.Log($"{TAG} 🚀 Cat multiplier set to x{multiplier}");
+
+        if (bonus3Panel != null)
+        {
+            if (multiplier > 1)
+            {
+                bonus3Panel.SetActive(true);
+                Debug.Log($"{TAG} 💚 Bonus3 panel shown.");
+            }
+            else
+            {
+                bonus3Panel.SetActive(false);
+                Debug.Log($"{TAG} 💚 Bonus3 panel hidden.");
+            }
+        }
     }
 
     // ──────────────────────────────────────────────
