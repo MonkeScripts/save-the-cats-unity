@@ -112,7 +112,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     private void SpawnBucket(Vector3 buildingPosition)
     {
         bucketHasSpawned = true;
-        Vector3 bucketPos = buildingPosition + new Vector3(bucketSpawnDistance, 0f, 0f);
+        Vector3 bucketPos = buildingPosition + new Vector3(bucketSpawnDistance, 3f, 0f);
         spawnedBucket = Instantiate(waterBucketPrefab, bucketPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {bucketSpawnTime}s left — bucket spawned at {bucketPos}.");
 

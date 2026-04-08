@@ -113,7 +113,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         shardHasSpawned = true;
         
         // Spawn shard to the LEFT of the building (negative X)
-        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0f, 0f);
+        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 3f, 0f);
         spawnedShard = Instantiate(iceShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — ice shard spawned at {shardPos}.");
 

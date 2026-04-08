@@ -116,7 +116,7 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         shardHasSpawned = true;
         
         // Spawn shard in FRONT of the building (positive Z)
-        Vector3 shardPos = buildingPosition + new Vector3(0f, 0f, shardSpawnDistance);
+        Vector3 shardPos = buildingPosition + new Vector3(0f, 3f, shardSpawnDistance);
         spawnedShard = Instantiate(greenShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — green shard spawned at {shardPos}.");
 

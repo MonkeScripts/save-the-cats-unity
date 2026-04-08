@@ -2587,6 +2587,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1113099866}
   m_CullTransparentMesh: 1
+--- !u!1001 &1149907435
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2334.8164
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1359.3904
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2344442421275471702, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9134997353445834048, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
+      propertyPath: m_Name
+      value: startCircle
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
 --- !u!1 &1167446570
 GameObject:
   m_ObjectHideFlags: 0
@@ -5928,6 +5985,8 @@ GameObject:
   - component: {fileID: 2512387470422636671}
   - component: {fileID: 2512387470422636674}
   - component: {fileID: 2512387470422636673}
+  - component: {fileID: 2512387470422636677}
+  - component: {fileID: 2512387470422636676}
   - component: {fileID: 2512387470422636675}
   m_Layer: 0
   m_Name: XR Origin (AR Rig)
@@ -5996,7 +6055,7 @@ MonoBehaviour:
   startButton: {fileID: 1679054237}
   wrongMovePanel: {fileID: 1570155771}
   startCirclePrefab: {fileID: 9134997353445834048, guid: 334210301e918ce4cbddcb5a8bcffe6b, type: 3}
-  circleSpawnDistance: 0.8
+  circleSpawnDistance: 1
   circleTriggerDistance: 0.6
   gameDuration: 60
   squatPrefab: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
@@ -6013,6 +6072,7 @@ MonoBehaviour:
   clickSound: {fileID: 8300000, guid: 6b3479da783995c479adb8ae4b085e7b, type: 3}
   wrongMoveSound: {fileID: 8300000, guid: f905fd8c562b13245896e108fe900f45, type: 3}
   fireSound: {fileID: 8300000, guid: c5fcbf0948a51534ba877e35b8d9e3f7, type: 3}
+  startCircleLoopSound: {fileID: 8300000, guid: e1280a53b3630de4eb9b1a9f476ca414, type: 3}
   roundSummaryPanel: {fileID: 715805824}
   roundScoreText: {fileID: 303062022}
   playAgainButton: {fileID: 1464951999}
@@ -6031,17 +6091,70 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GrowthEffect
   greenShardPrefab: {fileID: 3928998189374746443, guid: 651d97896a8fe374e8485bf852f1ee93, type: 3}
   greenOrbPrefab: {fileID: 1149293899838133914, guid: 8d86c3e365035454b90c9f12830086e8, type: 3}
-  shardSpawnTime: 55
+  shardSpawnTime: 20
   shardSpawnDistance: 0.8
   shardTriggerDistance: 0.6
   shieldDuration: 15
   catMultiplier: 3
+  shardLifetime: 10
   effectAudioSource: {fileID: 11688001}
   crystalAppearSound: {fileID: 8300000, guid: 928264cecf05f354ba20a672965b4c3b, type: 3}
   collectSound: {fileID: 8300000, guid: 91e35f6ba8c50da4e836844cbcdea4a7, type: 3}
   shieldSound: {fileID: 8300000, guid: 0b50f30892b40b943b7108e00f161b5e, type: 3}
   crystalVolume: 0.7
   shieldVolume: 1
+--- !u!114 &2512387470422636676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2512387470422636669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 964b277f478f40e4d90ad2d467da9962, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IceEffect
+  iceShardPrefab: {fileID: 683182934616091483, guid: f28c3bb301c56c9428ab0656089195d9, type: 3}
+  iceEffectPrefab: {fileID: 584207449403360073, guid: ad7287d001e0b23478a18306f47c65fa, type: 3}
+  shardSpawnTime: 40
+  shardSpawnDistance: 0.8
+  shardTriggerDistance: 0.7
+  freezeDuration: 15
+  shardLifetime: 10
+  effectAudioSource: {fileID: 11688001}
+  crystalAppearSound: {fileID: 8300000, guid: 928264cecf05f354ba20a672965b4c3b, type: 3}
+  collectSound: {fileID: 8300000, guid: 91e35f6ba8c50da4e836844cbcdea4a7, type: 3}
+  freezeSound: {fileID: 8300000, guid: 4d0e9167c08cbe24d8afe5233c50d9ff, type: 3}
+  crystalVolume: 0.5
+  freezeVolume: 1
+--- !u!114 &2512387470422636677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2512387470422636669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9041e64d125be8f4d80e182aa1002098, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterBucketEffect
+  waterBucketPrefab: {fileID: 7257815788572247380, guid: 1a31e92b567ffe6449dd4e6b74f64b0a, type: 3}
+  rainEffectPrefab: {fileID: 8363755088263445428, guid: e4e29c120427e2d45a6ca7dc913c1072, type: 3}
+  bucketSpawnTime: 55
+  bucketSpawnDistance: 0.8
+  bucketTriggerDistance: 0.6
+  rainDuration: 5
+  bonusCatSpawns: 15
+  catSpawnInterval: 0.2
+  bucketLifetime: 10
+  effectAudioSource: {fileID: 11688001}
+  collectSound: {fileID: 8300000, guid: 91e35f6ba8c50da4e836844cbcdea4a7, type: 3}
+  crystalAppearSound: {fileID: 8300000, guid: 928264cecf05f354ba20a672965b4c3b, type: 3}
+  rainSound: {fileID: 8300000, guid: e41f1360b0151dc46a52c9413957c315, type: 3}
+  crystalVolume: 0.7
+  rainVolume: 1
 --- !u!4 &2512387470860572925
 Transform:
   m_ObjectHideFlags: 0
@@ -6154,3 +6267,4 @@ SceneRoots:
   - {fileID: 1864559703}
   - {fileID: 678173552}
   - {fileID: 11688002}
+  - {fileID: 1149907435}
