@@ -5656,7 +5656,7 @@ MonoBehaviour:
   roundScoreText: {fileID: 303062022}
   playAgainButton: {fileID: 1464951999}
   finalEndButton: {fileID: 1885759663}
-  waterBucketPrefab: {fileID: 6802447506477772605, guid: b76deb50b0029974d99911150ed1003b, type: 3}
+  waterBucketPrefab: {fileID: 683182934616091483, guid: 491bd2f8e55e1db45a195465b18740bd, type: 3}
   rainEffectPrefab: {fileID: 8363755088263445428, guid: e4e29c120427e2d45a6ca7dc913c1072, type: 3}
   bucketSpawnDistance: 0.8
   bucketTriggerDistance: 0.6
