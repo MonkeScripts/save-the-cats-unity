@@ -251,6 +251,10 @@ public class overall_game_play : MonoBehaviour
         circlePos.y = buildingPos.y;
         
         spawnedStartCircle = Instantiate(startCirclePrefab, circlePos, Quaternion.identity);
+
+        //Save position for special mode
+        if (StartCircleAnchor.Instance != null)
+            StartCircleAnchor.Instance.SetStartCirclePosition(circlePos);
         
         Debug.Log($"{TAG} 🎯 Start circle spawned at {circlePos} ({circleSpawnDistance}m behind building)");
 
@@ -416,6 +420,11 @@ public class overall_game_play : MonoBehaviour
                     if (selectedExercise != ExerciseType.None)
                     {
                         Debug.Log($"{TAG} Exercise {selectedExercise} selected. Queuing countdown.");
+
+                        //Tell special mode manager which exercise was selected
+                        if (ClimberAltArmLegGameMode.Instance != null)
+                            ClimberAltArmLegGameMode.Instance.SetSpecialMode(selectedExercise);
+
                         mqttSpawnQueue.Enqueue(false);
                     }
                 }
@@ -476,7 +485,7 @@ public class overall_game_play : MonoBehaviour
         isTimePaused = false;
         catMultiplier = 1;
         timeLeft     = 0;
-        isReadyForExerciseSelection = false;  // NEW: Reset this flag
+        isReadyForExerciseSelection = false;
 
         if (audioSource != null)
         {
@@ -508,6 +517,9 @@ public class overall_game_play : MonoBehaviour
         timerPanel.SetActive(false);
         catCountPanel.SetActive(false);
         Debug.Log($"{TAG} Round ended. Cats: {catCount}");
+
+        if (ClimberAltArmLegGameMode.Instance != null) ClimberAltArmLegGameMode.Instance.Reset();
+        if (StartCircleAnchor.Instance != null) StartCircleAnchor.Instance.Reset();
     }
 
     // ──────────────────────────────────────────────
@@ -562,6 +574,9 @@ public class overall_game_play : MonoBehaviour
         effectManager?.ResetForNewRound();
 
         Debug.Log($"{TAG} PlayAgain: Walk to start location for new round.");
+
+        if (ClimberAltArmLegGameMode.Instance != null) ClimberAltArmLegGameMode.Instance.Reset();
+        if (StartCircleAnchor.Instance != null) StartCircleAnchor.Instance.Reset();
     }
 
     public void ShowFinalResults()
@@ -682,15 +697,30 @@ public class overall_game_play : MonoBehaviour
         }
 
         GameObject prefab = GetSelectedPrefab();
+
+        // NEW: Use start circle position for Climbers and AltArmLeg
+        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null && 
+                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
+
         foreach (var entry in spawnedCubes)
         {
-            currentActiveExerciseModel = Instantiate(prefab, entry.Value.transform.position, entry.Value.transform.rotation);
+            Vector3    spawnPos = isSpecialMode && StartCircleAnchor.Instance != null && 
+                                StartCircleAnchor.Instance.HasPosition()
+                                ? StartCircleAnchor.Instance.GetStartCirclePosition()
+                                : entry.Value.transform.position;
+
+            Quaternion spawnRot = entry.Value.transform.rotation;
+
+            currentActiveExerciseModel = Instantiate(prefab, spawnPos, spawnRot);
+
             if (audioSource != null && fireSound != null)
             {
                 audioSource.clip = fireSound;
                 audioSource.loop = true;
                 audioSource.Play();
             }
+
+            Debug.Log($"{TAG} Exercise prefab spawned at {(isSpecialMode ? "START CIRCLE" : "BUILDING")}: {spawnPos}");
             break;
         }
     }

@@ -112,6 +112,15 @@ public class SpecialEffectManager : MonoBehaviour
         
         if (!isGameActive()) return;
 
+        //Disable all power-ups for Climbers and AltArmLeg
+        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null && 
+                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
+        if (isSpecialMode)
+        {
+            Debug.Log($"[EFFECT_MGR] ⚠️ Special mode active - power-ups disabled.");
+            return;
+        }
+
         Vector3 buildingPos = getBuildingPosition();
         Vector3 phonePos    = Camera.main.transform.position;
         float   timeLeft    = getTimeLeft();
