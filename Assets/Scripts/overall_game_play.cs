@@ -46,9 +46,9 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private GameObject      wrongMovePanel;
 
     [Header("Power-Up Info Panels")]
-    [SerializeField] private GameObject waterBucketInformationPanel;  // NEW: Water power-up explanation
-    [SerializeField] private GameObject iceInformationPanel;          // NEW: Ice power-up explanation
-    [SerializeField] private GameObject growthInformationPanel;       // NEW: Growth power-up explanation
+    [SerializeField] private GameObject waterBucketInformationPanel;
+    [SerializeField] private GameObject iceInformationPanel;
+    [SerializeField] private GameObject growthInformationPanel;
 
     [Header("Start Location Settings")]
     [SerializeField] private GameObject startCirclePrefab;
@@ -101,6 +101,7 @@ public class overall_game_play : MonoBehaviour
 
     // Start location state
     private bool       isWaitingAtStartLocation = false;
+    private bool       isReadyForExerciseSelection = false;  // NEW: Only true after reaching circle
     private GameObject spawnedStartCircle;
 
     // Info panel coroutines
@@ -153,7 +154,7 @@ public class overall_game_play : MonoBehaviour
                 setTimePausedCallback:    SetTimePaused,
                 spawnCatCallback:         SpawnCatFromCube,
                 setCatMultiplierCallback: SetCatMultiplier,
-                showInfoPanelCallback:    ShowInfoPanel,  // NEW: Pass info panel callback
+                showInfoPanelCallback:    ShowInfoPanel,
                 gameActiveGetter:         () => isGameActive,
                 timeLeftGetter:           () => timeLeft
             );
@@ -294,6 +295,7 @@ public class overall_game_play : MonoBehaviour
     private void OnReachedStartLocation()
     {
         isWaitingAtStartLocation = false;
+        isReadyForExerciseSelection = true;  // NEW: Now MQTT commands will be accepted
 
         if (audioSource != null && clickSound != null)
             audioSource.PlayOneShot(clickSound);
@@ -322,13 +324,9 @@ public class overall_game_play : MonoBehaviour
     }
 
     // ──────────────────────────────────────────────
-    // Info Panel Display (NEW)
+    // Info Panel Display
     // ──────────────────────────────────────────────
 
-    /// <summary>
-    /// Shows the appropriate info panel for the specified power-up.
-    /// Called by SpecialEffectManager when a power-up is collected.
-    /// </summary>
     private void ShowInfoPanel(string panelName, float duration)
     {
         Debug.Log($"{TAG} 📋 ShowInfoPanel called: panel='{panelName}', duration={duration}s");
@@ -338,7 +336,6 @@ public class overall_game_play : MonoBehaviour
             case "water":
                 if (waterBucketInformationPanel != null)
                 {
-                    // Stop any existing coroutine for this panel
                     if (waterInfoCoroutine != null)
                         StopCoroutine(waterInfoCoroutine);
                     waterInfoCoroutine = StartCoroutine(ShowInfoPanelRoutine(waterBucketInformationPanel, duration));
@@ -393,6 +390,23 @@ public class overall_game_play : MonoBehaviour
 
             if (topic == "ultra/action1")
             {
+                // ═══════════════════════════════════════════════════════════
+                // FIX: Ignore ALL MQTT commands if user hasn't reached the start circle yet
+                // ═══════════════════════════════════════════════════════════
+                if (isWaitingAtStartLocation)
+                {
+                    Debug.Log($"{TAG} ⚠️ MQTT ignored - user still walking to start circle!");
+                    return;
+                }
+
+                // Also ignore if not ready for exercise selection (before circle is reached)
+                if (!isReadyForExerciseSelection && !isGameActive)
+                {
+                    Debug.Log($"{TAG} ⚠️ MQTT ignored - not ready for exercise selection yet!");
+                    return;
+                }
+                // ═══════════════════════════════════════════════════════════
+
                 if (selectedExercise == ExerciseType.None)
                 {
                     switch (message)
@@ -468,6 +482,7 @@ public class overall_game_play : MonoBehaviour
         isTimePaused = false;
         catMultiplier = 1;
         timeLeft     = 0;
+        isReadyForExerciseSelection = false;  // NEW: Reset this flag
 
         if (audioSource != null)
         {
@@ -510,6 +525,7 @@ public class overall_game_play : MonoBehaviour
             audioSource.PlayOneShot(clickSound);
 
         isAnchored = true;
+        isReadyForExerciseSelection = false;  // NEW: Not ready until circle is reached
         
         if (startButton != null) startButton.SetActive(false);
         if (startPanel != null) startPanel.SetActive(false);
@@ -539,6 +555,7 @@ public class overall_game_play : MonoBehaviour
         isGameActive     = false;
         isTimePaused     = false;
         catMultiplier    = 1;
+        isReadyForExerciseSelection = false;  // NEW: Not ready until circle is reached
         
         SpawnStartCircle();
         
