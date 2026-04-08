@@ -200,15 +200,20 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
 
         StartCoroutine(FreezeRoutine());
     }
-
+    
     private IEnumerator FreezeRoutine()
     {
         isFreezing = true;
-        Debug.Log($"{TAG} ❄️ TIME FROZEN for {freezeDuration} seconds! Do as many reps as you can!");
 
         // PAUSE TIME
         OnTimePause?.Invoke(true);
-        Debug.Log($"{TAG} ⏸️ Time pause event fired (pause=true).");
+
+        // NEW: Start freeze bar
+        FreezeTimerBar freezeBar = FindObjectOfType<FreezeTimerBar>();
+        if (freezeBar != null)
+            freezeBar.StartBar(freezeDuration);
+        else
+            Debug.LogWarning($"{TAG} ⚠️ FreezeTimerBar not found!");
 
         // Start freeze sound
         if (effectAudioSource != null && freezeSound != null)
@@ -217,32 +222,28 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.loop = true;
             effectAudioSource.volume = freezeVolume;
             effectAudioSource.Play();
-            Debug.Log($"{TAG} 🔊 Freeze sound started (volume {freezeVolume}).");
         }
 
-        // Wait for freeze duration (using real time)
         yield return new WaitForSecondsRealtime(freezeDuration);
 
-        // Stop freeze sound
         if (effectAudioSource != null && effectAudioSource.isPlaying)
         {
             effectAudioSource.Stop();
             effectAudioSource.loop = false;
-            Debug.Log($"{TAG} 🔇 Freeze sound stopped.");
         }
 
-        // Destroy ice effect
         if (spawnedIceEffect != null)
         {
             Destroy(spawnedIceEffect);
-            Debug.Log($"{TAG} ☀️ Ice effect ended.");
         }
 
         isFreezing = false;
 
         // RESUME TIME
         OnTimePause?.Invoke(false);
-        Debug.Log($"{TAG} ▶️ Time pause event fired (pause=false). Game resumes!");
+
+        // Bar auto hides itself when timeRemaining hits 0
+        Debug.Log($"{TAG} ▶️ Time resumed!");
     }
 
     private void CleanUp()
