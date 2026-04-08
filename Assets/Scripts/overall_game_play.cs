@@ -82,6 +82,7 @@ public class overall_game_play : MonoBehaviour
     private bool    isAnchored      = false;
     private bool    isCountingDown  = false;
     private bool    triggerWrongMoveUI = false;
+    private bool    isTimePaused    = false;
     private GameObject currentActiveExerciseModel;
 
     // ──────────────────────────────────────────────
@@ -117,10 +118,12 @@ public class overall_game_play : MonoBehaviour
         if (effectManager != null)
         {
             effectManager.Initialize(
-                getBuildingPos:    GetBuildingPosition,
-                addCatsCallback:   AddBonusCats,
-                gameActiveGetter:  () => isGameActive,
-                timeLeftGetter:    () => timeLeft
+                getBuildingPos:        GetBuildingPosition,
+                addCatsCallback:       AddBonusCats,
+                setTimePausedCallback: SetTimePaused,
+                spawnCatCallback:      SpawnCatFromCube,  // NEW: Pass cat spawn callback
+                gameActiveGetter:      () => isGameActive,
+                timeLeftGetter:        () => timeLeft
             );
             Debug.Log($"{TAG} SpecialEffectManager found and initialized.");
         }
@@ -162,15 +165,23 @@ public class overall_game_play : MonoBehaviour
         // Core timer
         if (isGameActive)
         {
-            if (timeLeft > 0)
+            // Only count down if time is NOT paused
+            if (timeLeft > 0 && !isTimePaused)
             {
                 timeLeft -= Time.deltaTime;
                 timerText.text = $"Time: {Mathf.Ceil(timeLeft)}s";
-
-                // Tick all special effects
-                effectManager?.Tick();
             }
-            else
+            // Show "FROZEN" or similar when paused
+            else if (isTimePaused)
+            {
+                timerText.text = $"❄️ FROZEN ❄️";
+            }
+
+            // Tick all special effects (even when time is paused, so effects can track state)
+            effectManager?.Tick();
+
+            // End game only if time ran out and not paused
+            if (timeLeft <= 0 && !isTimePaused)
             {
                 EndGame();
             }
@@ -219,6 +230,7 @@ public class overall_game_play : MonoBehaviour
                 }
                 else if (isGameActive)
                 {
+                    // Can still do reps even when time is paused!
                     CheckExerciseCompletion(message);
                 }
             }
@@ -271,6 +283,7 @@ public class overall_game_play : MonoBehaviour
     private void EndGame()
     {
         isGameActive = false;
+        isTimePaused = false;
         timeLeft     = 0;
 
         // Stop looping sounds
@@ -309,13 +322,13 @@ public class overall_game_play : MonoBehaviour
     // ──────────────────────────────────────────────
     public void PlayAgain()
     {
-        Debug.Log($"{TAG} 🔘 PlayAgain button clicked!");  // ← Add this
         if (audioSource != null && clickSound != null) audioSource.PlayOneShot(clickSound);
         if (roundSummaryPanel != null) roundSummaryPanel.SetActive(false);
 
         selectedExercise = ExerciseType.None;
         timeLeft         = gameDuration;
         isGameActive     = false;
+        isTimePaused     = false;
         waitingExercisePanel.SetActive(true);
 
         // Reset all effects for the new round
@@ -326,6 +339,7 @@ public class overall_game_play : MonoBehaviour
 
     public void ShowFinalResults()
     {
+        if (audioSource != null && clickSound != null) audioSource.PlayOneShot(clickSound);
         if (roundSummaryPanel != null) roundSummaryPanel.SetActive(false);
         if (gameOverPanel     != null) gameOverPanel.SetActive(true);
         if (finalScoreText    != null) finalScoreText.text = $"{catCount}";
@@ -357,7 +371,8 @@ public class overall_game_play : MonoBehaviour
     // ──────────────────────────────────────────────
     public void SpawnCatFromCube()
     {
-        if (!isGameActive) return;
+        // NOTE: Removed "if (!isGameActive) return;" so effects can spawn cats even after game ends
+        // The effect scripts handle their own timing
 
         foreach (var cubeEntry in spawnedCubes)
         {
@@ -501,6 +516,13 @@ public class overall_game_play : MonoBehaviour
         catCount += amount;
         if (catCountText != null) catCountText.text = $"{catCount}";
         Debug.Log($"{TAG} +{amount} bonus cats! Total: {catCount}");
+    }
+
+    /// <summary>Pauses or resumes the game timer. Called by SpecialEffectManager (from IceEffect).</summary>
+    private void SetTimePaused(bool isPaused)
+    {
+        isTimePaused = isPaused;
+        Debug.Log($"{TAG} ⏱️ Time is now {(isPaused ? "PAUSED ❄️" : "RESUMED ▶️")}");
     }
 
     // ──────────────────────────────────────────────

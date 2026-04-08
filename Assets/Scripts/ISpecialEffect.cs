@@ -32,8 +32,21 @@ public interface ISpecialEffect
     void ResetForNewRound();
 
     /// <summary>
-    /// Invoked by the effect when the player earns bonus cats.
+    /// Invoked by the effect when the player earns bonus cats (adds to counter without spawning).
     /// Subscribe to this in SpecialEffectManager to forward the bonus to the main game.
     /// </summary>
     event System.Action<int> OnBonusCatsEarned;
+    
+    /// <summary>
+    /// Invoked by the effect when time should be paused or resumed.
+    /// true = pause time, false = resume time.
+    /// Subscribe to this in SpecialEffectManager to forward to the main game.
+    /// </summary>
+    event System.Action<bool> OnTimePause;
+    
+    /// <summary>
+    /// Invoked by the effect when a cat should be spawned visually (with meow sound, animation, etc.).
+    /// Subscribe to this in SpecialEffectManager to forward to the main game's SpawnCatFromCube().
+    /// </summary>
+    event System.Action OnSpawnCat;
 }
