@@ -4,12 +4,10 @@
 // It implements ISpecialEffect so SpecialEffectManager can drive it automatically.
 //
 // WHAT IT DOES:
-//   • At 50 s remaining, spawns a green ice shard in front of the building.
+//   • At 50 s remaining, spawns a green ice shard for LIMITED TIME (5 seconds).
 //   • Plays crystal_appear sound while shard is visible.
-//   • When the phone comes within trigger distance of the shard, it "collects" it.
-//   • Collection: destroys shard, spawns green orb shield at building for 10 seconds.
-//   • During shield time, every rep spawns 3 cats instead of 1!
-//   • After shield duration, multiplier resets to 1x, gameplay continues normally.
+//   • If user collects within 5 seconds: shows info panel, green orb + x3 multiplier.
+//   • If user misses: shard disappears, power-up lost!
 //
 // IMPORTANT: This script uses its OWN AudioSource so it doesn't interrupt the fire sound!
 
@@ -29,18 +27,18 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
 
     [Header("Growth Shard Settings")]
     [SerializeField] private float shardSpawnTime       = 50f;   // Seconds left when shard appears
+    [SerializeField] private float shardDuration        = 5f;    // How long shard stays (limited time!)
     [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres in front of building
     [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
     [SerializeField] private float shieldDuration       = 10f;   // Seconds the multiplier is active
     [SerializeField] private int   catMultiplier        = 3;     // How many cats per rep during shield
-    [SerializeField] private float shardLifetime = 10f; // NEW: Shard disappears after 10s if not collected
+    [SerializeField] private float infoPanelDuration    = 5f;    // How long info panel shows
 
-    [Header("Audio")]
-    [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
+    [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [SerializeField] private AudioSource effectAudioSource;
-    [SerializeField] private AudioClip   crystalAppearSound;  // Looping sound while shard is visible
-    [SerializeField] private AudioClip   collectSound;        // One-shot SFX when shard collected
-    [SerializeField] private AudioClip   shieldSound;         // Looping sound during shield time
+    [SerializeField] private AudioClip   crystalAppearSound;
+    [SerializeField] private AudioClip   collectSound;
+    [SerializeField] private AudioClip   shieldSound;
 
     [Header("Volume Settings")]
     [SerializeField] private float crystalVolume = 0.5f;
@@ -50,12 +48,11 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     // ISpecialEffect — public API
     // ──────────────────────────────────────────────
     public string EffectName => "Growth Shard";
-    public event System.Action<int> OnBonusCatsEarned;   // Not used by this effect
-    public event System.Action<bool> OnTimePause;        // Not used by this effect
-    public event System.Action OnSpawnCat;               // Not used by this effect
-    
-    // NEW: Event to set cat multiplier (multiplier, duration)
+    public event System.Action<int> OnBonusCatsEarned;
+    public event System.Action<bool> OnTimePause;
+    public event System.Action OnSpawnCat;
     public event System.Action<int, float> OnSetCatMultiplier;
+    public event System.Action<string, float> OnShowInfoPanel;  // NEW
 
     // ──────────────────────────────────────────────
     // Internal state
@@ -64,10 +61,12 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     private GameObject spawnedOrb;
     private bool       shardHasSpawned = false;
     private bool       shardCollected  = false;
+    private bool       shardExpired    = false;
     private bool       isShieldActive  = false;
+    private Coroutine  shardTimerCoroutine;
 
     // ──────────────────────────────────────────────
-    // ISpecialEffect — Tick (called every frame by SpecialEffectManager)
+    // ISpecialEffect — Tick
     // ──────────────────────────────────────────────
     public void Tick(float timeLeft, Vector3 buildingPosition, Vector3 phonePosition)
     {
@@ -77,8 +76,8 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             SpawnShard(buildingPosition);
         }
 
-        // Phase 2: Poll for phone proximity once shard is alive
-        if (shardHasSpawned && !shardCollected && spawnedShard != null)
+        // Phase 2: Poll for phone proximity (only if shard exists and not expired)
+        if (shardHasSpawned && !shardCollected && !shardExpired && spawnedShard != null)
         {
             float dist = Vector3.Distance(phonePosition, spawnedShard.transform.position);
             Debug.Log($"{TAG} 📏 Phone↔Shard dist: {dist:F2} m (trigger < {shardTriggerDistance} m)");
@@ -104,6 +103,7 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         CleanUp();
         shardHasSpawned = false;
         shardCollected  = false;
+        shardExpired    = false;
         isShieldActive  = false;
         Debug.Log($"{TAG} 🔄 Reset for new round.");
     }
@@ -116,11 +116,12 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         shardHasSpawned = true;
         
         // Spawn shard in FRONT of the building (positive Z)
-        Vector3 shardPos = buildingPosition + new Vector3(0f, 3f, shardSpawnDistance);
+        Vector3 shardPos = buildingPosition + new Vector3(0f, 0f, shardSpawnDistance);
         spawnedShard = Instantiate(greenShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — green shard spawned at {shardPos}.");
+        Debug.Log($"{TAG} ⚠️ HURRY! Green shard will disappear in {shardDuration} seconds!");
 
-        // Start looping crystal appear sound
+        // Start crystal appear sound
         if (effectAudioSource != null && crystalAppearSound != null)
         {
             effectAudioSource.clip = crystalAppearSound;
@@ -129,13 +130,48 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.Play();
             Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
         }
-        // --- NEW: Start the despawn timer ---
-        StartCoroutine(ShardLifetimeRoutine());
+
+        // Start the shard expiration timer
+        shardTimerCoroutine = StartCoroutine(ShardExpirationRoutine());
+    }
+
+    private IEnumerator ShardExpirationRoutine()
+    {
+        yield return new WaitForSeconds(shardDuration);
+
+        // If shard wasn't collected, it expires
+        if (!shardCollected)
+        {
+            shardExpired = true;
+            Debug.Log($"{TAG} ⏰ TIME'S UP! Green shard expired - power-up missed!");
+
+            // Stop crystal sound
+            if (effectAudioSource != null && effectAudioSource.isPlaying)
+            {
+                effectAudioSource.Stop();
+                effectAudioSource.loop = false;
+                Debug.Log($"{TAG} 🔇 Crystal appear sound stopped (expired).");
+            }
+
+            // Destroy shard
+            if (spawnedShard != null)
+            {
+                Destroy(spawnedShard);
+                Debug.Log($"{TAG} 💚 Green shard disappeared (not collected in time).");
+            }
+        }
     }
 
     private void CollectShard(Vector3 buildingPosition)
     {
         shardCollected = true;
+
+        // Stop the expiration timer
+        if (shardTimerCoroutine != null)
+        {
+            StopCoroutine(shardTimerCoroutine);
+            shardTimerCoroutine = null;
+        }
 
         // Stop crystal appear sound
         if (effectAudioSource != null && effectAudioSource.isPlaying)
@@ -149,17 +185,20 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         Destroy(spawnedShard);
         Debug.Log($"{TAG} 💚 Green shard collected and destroyed.");
 
-        // Play one-shot collect SFX
+        // Play collect SFX
         if (effectAudioSource != null && collectSound != null)
         {
             effectAudioSource.PlayOneShot(collectSound);
         }
 
+        // NEW: Show info panel
+        OnShowInfoPanel?.Invoke("growth", infoPanelDuration);
+        Debug.Log($"{TAG} 📋 Growth info panel requested for {infoPanelDuration}s.");
+
         // Spawn green orb shield at building position
         spawnedOrb = Instantiate(greenOrbPrefab, buildingPosition, Quaternion.identity);
         Debug.Log($"{TAG} 💚 Green orb shield spawned at building: {buildingPosition}.");
 
-        // Start shield timer
         StartCoroutine(ShieldRoutine());
     }
 
@@ -168,11 +207,11 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         isShieldActive = true;
         Debug.Log($"{TAG} 💚 GROWTH SHIELD ACTIVE for {shieldDuration} seconds! Every rep = {catMultiplier} cats!");
 
-        // ACTIVATE MULTIPLIER - notify the main game
+        // ACTIVATE MULTIPLIER
         OnSetCatMultiplier?.Invoke(catMultiplier, shieldDuration);
         Debug.Log($"{TAG} 🚀 Cat multiplier set to x{catMultiplier} for {shieldDuration}s.");
 
-        // Start looping shield sound
+        // Start shield sound
         if (effectAudioSource != null && shieldSound != null)
         {
             effectAudioSource.clip = shieldSound;
@@ -202,35 +241,15 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
 
         isShieldActive = false;
 
-        // RESET MULTIPLIER - notify the main game (multiplier back to 1)
+        // RESET MULTIPLIER
         OnSetCatMultiplier?.Invoke(1, 0f);
         Debug.Log($"{TAG} ▶️ Cat multiplier reset to x1. Game resumes normally!");
     }
 
-    private IEnumerator ShardLifetimeRoutine()
-    {
-        yield return new WaitForSeconds(shardLifetime);
-
-        // If shard hasn't been collected yet, despawn it
-        if (spawnedShard != null && !shardCollected)
-        {
-            Debug.Log($"{TAG} ⏱️ Growth Shard lifetime expired. Despawning!");
-
-            // Stop the appear sound
-            if (effectAudioSource != null && effectAudioSource.isPlaying)
-            {
-                effectAudioSource.Stop();
-            }
-
-            Destroy(spawnedShard);
-            // shardHasSpawned stays true so it doesn't pop up again this round
-        }
-    }
-
     private void CleanUp()
     {
-        // Stop all coroutines
         StopAllCoroutines();
+        shardTimerCoroutine = null;
 
         // If shield was active, reset multiplier
         if (isShieldActive)
@@ -239,13 +258,10 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             Debug.Log($"{TAG} ▶️ Cleanup: Resetting multiplier to x1.");
         }
 
-        // Stop any playing audio and reset volume
         if (effectAudioSource != null)
         {
             if (effectAudioSource.isPlaying)
-            {
                 effectAudioSource.Stop();
-            }
             effectAudioSource.loop = false;
             effectAudioSource.volume = 1f;
             Debug.Log($"{TAG} 🔇 Audio stopped during cleanup.");

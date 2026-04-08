@@ -4,11 +4,10 @@
 // It implements ISpecialEffect so SpecialEffectManager can drive it automatically.
 //
 // WHAT IT DOES:
-//   • At 15 s remaining, spawns a water bucket 15 cm to the right of the building.
-//   • Plays crystal_appear sound while bucket is visible (on its OWN AudioSource).
-//   • When the phone comes within 0.3 m of the bucket, it "collects" it.
-//   • Collection: destroys bucket, stops crystal sound, spawns rain VFX, plays rain sound.
-//   • Rain auto-despawns after rainDuration seconds, then SPAWNS CATS VISUALLY.
+//   • At 15 s remaining, spawns a water bucket for LIMITED TIME (5 seconds).
+//   • Plays crystal_appear sound while bucket is visible.
+//   • If user collects within 5 seconds: shows info panel, rain + bonus cats.
+//   • If user misses: bucket disappears, power-up lost!
 //
 // IMPORTANT: This script uses its OWN AudioSource so it doesn't interrupt the fire sound!
 
@@ -28,19 +27,19 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
 
     [Header("Water Bucket Settings")]
     [SerializeField] private float bucketSpawnTime       = 15f;   // Seconds left when bucket appears
+    [SerializeField] private float bucketDuration        = 5f;    // How long bucket stays (limited time!)
     [SerializeField] private float bucketSpawnDistance   = 0.15f; // Metres right of building
     [SerializeField] private float bucketTriggerDistance = 0.30f; // Metres phone must be within
     [SerializeField] private float rainDuration          = 5f;    // Seconds rain lasts
     [SerializeField] private int   bonusCatSpawns        = 15;    // Number of cats to spawn visually
     [SerializeField] private float catSpawnInterval      = 0.3f;  // Seconds between each cat spawn
-    [SerializeField] private float bucketLifetime = 10f; // NEW: How long the bucket stays visible
+    [SerializeField] private float infoPanelDuration     = 5f;    // How long info panel shows
 
-    [Header("Audio")]
-    [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
+    [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [SerializeField] private AudioSource effectAudioSource;
-    [SerializeField] private AudioClip   collectSound;           // One-shot SFX when bucket collected
-    [SerializeField] private AudioClip   crystalAppearSound;     // Looping sound while bucket is visible
-    [SerializeField] private AudioClip   rainSound;              // Looping sound while rain is active
+    [SerializeField] private AudioClip   collectSound;
+    [SerializeField] private AudioClip   crystalAppearSound;
+    [SerializeField] private AudioClip   rainSound;
     
     [Header("Volume Settings")]
     [SerializeField] private float crystalVolume = 0.5f;
@@ -50,10 +49,11 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     // ISpecialEffect — public API
     // ──────────────────────────────────────────────
     public string EffectName => "Water Bucket";
-    public event System.Action<int> OnBonusCatsEarned;           // Not used
-    public event System.Action<bool> OnTimePause;                // Not used
-    public event System.Action OnSpawnCat;                       // Used to spawn cats visually
-    public event System.Action<int, float> OnSetCatMultiplier;   // Not used
+    public event System.Action<int> OnBonusCatsEarned;
+    public event System.Action<bool> OnTimePause;
+    public event System.Action OnSpawnCat;
+    public event System.Action<int, float> OnSetCatMultiplier;
+    public event System.Action<string, float> OnShowInfoPanel;  // NEW
 
     // ──────────────────────────────────────────────
     // Internal state
@@ -62,10 +62,12 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     private GameObject spawnedRain;
     private bool       bucketHasSpawned = false;
     private bool       bucketCollected  = false;
+    private bool       bucketExpired    = false;
     private bool       isRaining        = false;
+    private Coroutine  bucketTimerCoroutine;
 
     // ──────────────────────────────────────────────
-    // ISpecialEffect — Tick (called every frame by SpecialEffectManager)
+    // ISpecialEffect — Tick
     // ──────────────────────────────────────────────
     public void Tick(float timeLeft, Vector3 buildingPosition, Vector3 phonePosition)
     {
@@ -75,8 +77,8 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
             SpawnBucket(buildingPosition);
         }
 
-        // Phase 2: Poll for phone proximity once bucket is alive
-        if (bucketHasSpawned && !bucketCollected && spawnedBucket != null)
+        // Phase 2: Poll for phone proximity (only if bucket exists and not expired)
+        if (bucketHasSpawned && !bucketCollected && !bucketExpired && spawnedBucket != null)
         {
             float dist = Vector3.Distance(phonePosition, spawnedBucket.transform.position);
             Debug.Log($"{TAG} 📏 Phone↔Bucket dist: {dist:F2} m (trigger < {bucketTriggerDistance} m)");
@@ -102,6 +104,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         CleanUp();
         bucketHasSpawned = false;
         bucketCollected  = false;
+        bucketExpired    = false;
         isRaining        = false;
         Debug.Log($"{TAG} 🔄 Reset for new round.");
     }
@@ -112,11 +115,12 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     private void SpawnBucket(Vector3 buildingPosition)
     {
         bucketHasSpawned = true;
-        Vector3 bucketPos = buildingPosition + new Vector3(bucketSpawnDistance, 3f, 0f);
+        Vector3 bucketPos = buildingPosition + new Vector3(bucketSpawnDistance, 0f, 0f);
         spawnedBucket = Instantiate(waterBucketPrefab, bucketPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {bucketSpawnTime}s left — bucket spawned at {bucketPos}.");
+        Debug.Log($"{TAG} ⚠️ HURRY! Bucket will disappear in {bucketDuration} seconds!");
 
-        // Start looping crystal appear sound
+        // Start crystal appear sound
         if (effectAudioSource != null && crystalAppearSound != null)
         {
             effectAudioSource.clip = crystalAppearSound;
@@ -125,13 +129,48 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.Play();
             Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
         }
-        // --- NEW: Start the despawn timer ---
-        StartCoroutine(BucketLifetimeRoutine());
+
+        // Start the bucket expiration timer
+        bucketTimerCoroutine = StartCoroutine(BucketExpirationRoutine());
+    }
+
+    private IEnumerator BucketExpirationRoutine()
+    {
+        yield return new WaitForSeconds(bucketDuration);
+
+        // If bucket wasn't collected, it expires
+        if (!bucketCollected)
+        {
+            bucketExpired = true;
+            Debug.Log($"{TAG} ⏰ TIME'S UP! Bucket expired - power-up missed!");
+
+            // Stop crystal sound
+            if (effectAudioSource != null && effectAudioSource.isPlaying)
+            {
+                effectAudioSource.Stop();
+                effectAudioSource.loop = false;
+                Debug.Log($"{TAG} 🔇 Crystal appear sound stopped (expired).");
+            }
+
+            // Destroy bucket
+            if (spawnedBucket != null)
+            {
+                Destroy(spawnedBucket);
+                Debug.Log($"{TAG} 🪣 Bucket disappeared (not collected in time).");
+            }
+        }
     }
 
     private void CollectBucket(Vector3 buildingPosition)
     {
         bucketCollected = true;
+
+        // Stop the expiration timer
+        if (bucketTimerCoroutine != null)
+        {
+            StopCoroutine(bucketTimerCoroutine);
+            bucketTimerCoroutine = null;
+        }
 
         // Stop crystal appear sound
         if (effectAudioSource != null && effectAudioSource.isPlaying)
@@ -145,18 +184,21 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         Destroy(spawnedBucket);
         Debug.Log($"{TAG} 🪣 Bucket collected and destroyed.");
 
-        // Play one-shot collect SFX
+        // Play collect SFX
         if (effectAudioSource != null && collectSound != null)
         {
             effectAudioSource.PlayOneShot(collectSound);
         }
 
-        // Spawn rain above building
+        // NEW: Show info panel
+        OnShowInfoPanel?.Invoke("water", infoPanelDuration);
+        Debug.Log($"{TAG} 📋 Water info panel requested for {infoPanelDuration}s.");
+
+        // Spawn rain
         Vector3 rainPos = buildingPosition + new Vector3(0f, -1.5f, 0f);
         spawnedRain = Instantiate(rainEffectPrefab, rainPos, Quaternion.identity);
         Debug.Log($"{TAG} 🌧️ Rain spawned at {rainPos}.");
 
-        // Start rain timer
         StartCoroutine(RainRoutine());
     }
 
@@ -165,7 +207,6 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         isRaining = true;
         Debug.Log($"{TAG} 🌧️ Rain will last {rainDuration} s.");
 
-        // Start looping rain sound
         if (effectAudioSource != null && rainSound != null)
         {
             effectAudioSource.clip = rainSound;
@@ -177,7 +218,6 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
 
         yield return new WaitForSeconds(rainDuration);
 
-        // Stop rain sound
         if (effectAudioSource != null && effectAudioSource.isPlaying)
         {
             effectAudioSource.Stop();
@@ -192,7 +232,6 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         }
         isRaining = false;
 
-        // SPAWN CATS VISUALLY
         Debug.Log($"{TAG} 🐱 Starting to spawn {bonusCatSpawns} cats visually!");
         StartCoroutine(SpawnCatsRoutine());
     }
@@ -209,29 +248,10 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         Debug.Log($"{TAG} 🐱 Finished spawning all {bonusCatSpawns} bonus cats!");
     }
 
-    private IEnumerator BucketLifetimeRoutine()
-    {
-        yield return new WaitForSeconds(bucketLifetime);
-
-        // If the bucket still exists and hasn't been collected, despawn it
-        if (spawnedBucket != null && !bucketCollected)
-        {
-            Debug.Log($"{TAG} ⏱️ Bucket lifetime expired. Despawning!");
-            
-            // Stop the "appear" sound
-            if (effectAudioSource != null && effectAudioSource.isPlaying)
-            {
-                effectAudioSource.Stop();
-            }
-
-            Destroy(spawnedBucket);
-            // We leave bucketHasSpawned as true so it doesn't try to spawn again this round
-        }
-    }
-
     private void CleanUp()
     {
         StopAllCoroutines();
+        bucketTimerCoroutine = null;
 
         if (effectAudioSource != null)
         {

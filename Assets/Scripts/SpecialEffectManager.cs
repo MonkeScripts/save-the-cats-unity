@@ -14,13 +14,14 @@ public class SpecialEffectManager : MonoBehaviour
     // ──────────────────────────────────────────────
     // Dependencies injected by the main game script
     // ──────────────────────────────────────────────
-    private System.Func<Vector3>      getBuildingPosition;
-    private System.Action<int>        addCats;
-    private System.Action<bool>       setTimePaused;
-    private System.Action             spawnCat;
-    private System.Action<int, float> setCatMultiplier;  // NEW: Callback to set cat multiplier
-    private System.Func<bool>         isGameActive;
-    private System.Func<float>        getTimeLeft;
+    private System.Func<Vector3>         getBuildingPosition;
+    private System.Action<int>           addCats;
+    private System.Action<bool>          setTimePaused;
+    private System.Action                spawnCat;
+    private System.Action<int, float>    setCatMultiplier;
+    private System.Action<string, float> showInfoPanel;  // NEW: Callback to show info panel
+    private System.Func<bool>            isGameActive;
+    private System.Func<float>           getTimeLeft;
 
     private List<ISpecialEffect> effects = new();
     private bool isInitialized = false;
@@ -29,19 +30,21 @@ public class SpecialEffectManager : MonoBehaviour
     // Called ONCE by the main script during Awake/Start
     // ──────────────────────────────────────────────
     public void Initialize(
-        System.Func<Vector3>      getBuildingPos,
-        System.Action<int>        addCatsCallback,
-        System.Action<bool>       setTimePausedCallback,
-        System.Action             spawnCatCallback,
-        System.Action<int, float> setCatMultiplierCallback,  // NEW parameter
-        System.Func<bool>         gameActiveGetter,
-        System.Func<float>        timeLeftGetter)
+        System.Func<Vector3>         getBuildingPos,
+        System.Action<int>           addCatsCallback,
+        System.Action<bool>          setTimePausedCallback,
+        System.Action                spawnCatCallback,
+        System.Action<int, float>    setCatMultiplierCallback,
+        System.Action<string, float> showInfoPanelCallback,  // NEW parameter
+        System.Func<bool>            gameActiveGetter,
+        System.Func<float>           timeLeftGetter)
     {
         getBuildingPosition = getBuildingPos;
         addCats             = addCatsCallback;
         setTimePaused       = setTimePausedCallback;
         spawnCat            = spawnCatCallback;
-        setCatMultiplier    = setCatMultiplierCallback;  // NEW
+        setCatMultiplier    = setCatMultiplierCallback;
+        showInfoPanel       = showInfoPanelCallback;  // NEW
         isGameActive        = gameActiveGetter;
         getTimeLeft         = timeLeftGetter;
 
@@ -58,7 +61,6 @@ public class SpecialEffectManager : MonoBehaviour
         
         Debug.Log($"{TAG} 🔍 Searching for ISpecialEffect components on '{gameObject.name}'...");
         
-        // Get ALL components on this GameObject
         var allComponents = GetComponents<MonoBehaviour>();
         Debug.Log($"{TAG} 📦 Found {allComponents.Length} MonoBehaviour components total.");
         
@@ -67,7 +69,6 @@ public class SpecialEffectManager : MonoBehaviour
             Debug.Log($"{TAG}    - {component.GetType().Name}");
         }
         
-        // Now specifically look for ISpecialEffect
         var foundEffects = GetComponents<ISpecialEffect>();
         Debug.Log($"{TAG} 🎯 Found {foundEffects.Length} ISpecialEffect components.");
         
@@ -83,7 +84,8 @@ public class SpecialEffectManager : MonoBehaviour
             effect.OnBonusCatsEarned += HandleBonusCats;
             effect.OnTimePause += HandleTimePause;
             effect.OnSpawnCat += HandleSpawnCat;
-            effect.OnSetCatMultiplier += HandleSetCatMultiplier;  // NEW
+            effect.OnSetCatMultiplier += HandleSetCatMultiplier;
+            effect.OnShowInfoPanel += HandleShowInfoPanel;  // NEW
             
             effects.Add(effect);
             Debug.Log($"{TAG} ✅ Registered effect: '{effect.EffectName}'");
@@ -114,7 +116,6 @@ public class SpecialEffectManager : MonoBehaviour
         Vector3 phonePos    = Camera.main.transform.position;
         float   timeLeft    = getTimeLeft();
 
-        // Debug: Log every 60 frames (roughly once per second)
         if (Time.frameCount % 60 == 0)
         {
             Debug.Log($"{TAG} 🕐 Tick: timeLeft={timeLeft:F1}s, effects={effects.Count}, building={buildingPos}");
@@ -176,6 +177,14 @@ public class SpecialEffectManager : MonoBehaviour
         Debug.Log($"{TAG} 🚀 Forwarded multiplier x{multiplier} to game script.");
     }
 
+    // NEW: Handler for info panel display
+    private void HandleShowInfoPanel(string panelName, float duration)
+    {
+        Debug.Log($"{TAG} 📋 HandleShowInfoPanel received: panel='{panelName}' for {duration}s");
+        showInfoPanel?.Invoke(panelName, duration);
+        Debug.Log($"{TAG} 📋 Forwarded info panel request to game script.");
+    }
+
     private void OnDestroy()
     {
         foreach (var effect in effects)
@@ -185,7 +194,8 @@ public class SpecialEffectManager : MonoBehaviour
                 effect.OnBonusCatsEarned -= HandleBonusCats;
                 effect.OnTimePause -= HandleTimePause;
                 effect.OnSpawnCat -= HandleSpawnCat;
-                effect.OnSetCatMultiplier -= HandleSetCatMultiplier;  // NEW
+                effect.OnSetCatMultiplier -= HandleSetCatMultiplier;
+                effect.OnShowInfoPanel -= HandleShowInfoPanel;  // NEW
             }
         }
     }
