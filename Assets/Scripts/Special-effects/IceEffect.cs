@@ -32,6 +32,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres away from building
     [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
     [SerializeField] private float freezeDuration       = 15f;   // Seconds time is paused
+    [SerializeField] private float shardLifetime = 10f; // NEW: Shard disappears after 10s if not collected
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
@@ -125,6 +126,8 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.Play();
             Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
         }
+        // --- NEW: Start the despawn timer ---
+        StartCoroutine(ShardLifetimeRoutine());
     }
 
     private void CollectShard(Vector3 buildingPosition)
@@ -199,6 +202,26 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         // RESUME TIME
         OnTimePause?.Invoke(false);
         Debug.Log($"{TAG} ▶️ Time pause event fired (pause=false). Game resumes!");
+    }
+
+    private IEnumerator ShardLifetimeRoutine()
+    {
+        yield return new WaitForSeconds(shardLifetime);
+
+        // If shard hasn't been collected yet, despawn it
+        if (spawnedShard != null && !shardCollected)
+        {
+            Debug.Log($"{TAG} ⏱️ Shard lifetime expired. Shard disappearing!");
+
+            // Stop the appear sound
+            if (effectAudioSource != null && effectAudioSource.isPlaying)
+            {
+                effectAudioSource.Stop();
+            }
+
+            Destroy(spawnedShard);
+            // shardHasSpawned stays true so it doesn't pop up again immediately
+        }
     }
 
     private void CleanUp()

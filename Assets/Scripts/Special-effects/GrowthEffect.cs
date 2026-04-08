@@ -33,8 +33,9 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
     [SerializeField] private float shieldDuration       = 10f;   // Seconds the multiplier is active
     [SerializeField] private int   catMultiplier        = 3;     // How many cats per rep during shield
+    [SerializeField] private float shardLifetime = 10f; // NEW: Shard disappears after 10s if not collected
 
-    [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
+    [Header("Audio")]
     [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioClip   crystalAppearSound;  // Looping sound while shard is visible
@@ -128,6 +129,8 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.Play();
             Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
         }
+        // --- NEW: Start the despawn timer ---
+        StartCoroutine(ShardLifetimeRoutine());
     }
 
     private void CollectShard(Vector3 buildingPosition)
@@ -202,6 +205,26 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         // RESET MULTIPLIER - notify the main game (multiplier back to 1)
         OnSetCatMultiplier?.Invoke(1, 0f);
         Debug.Log($"{TAG} ▶️ Cat multiplier reset to x1. Game resumes normally!");
+    }
+
+    private IEnumerator ShardLifetimeRoutine()
+    {
+        yield return new WaitForSeconds(shardLifetime);
+
+        // If shard hasn't been collected yet, despawn it
+        if (spawnedShard != null && !shardCollected)
+        {
+            Debug.Log($"{TAG} ⏱️ Growth Shard lifetime expired. Despawning!");
+
+            // Stop the appear sound
+            if (effectAudioSource != null && effectAudioSource.isPlaying)
+            {
+                effectAudioSource.Stop();
+            }
+
+            Destroy(spawnedShard);
+            // shardHasSpawned stays true so it doesn't pop up again this round
+        }
     }
 
     private void CleanUp()

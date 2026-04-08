@@ -70,6 +70,7 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private AudioClip   clickSound;
     [SerializeField] private AudioClip   wrongMoveSound;
     [SerializeField] private AudioClip   fireSound;
+    [SerializeField] private AudioClip startCircleLoopSound;
 
     [Header("Round Transition UI")]
     [SerializeField] private GameObject      roundSummaryPanel;
@@ -255,8 +256,14 @@ public class overall_game_play : MonoBehaviour
         
         spawnedStartCircle = Instantiate(startCirclePrefab, circlePos, Quaternion.identity);
         
-        // Rotate circle to lay flat on ground (if needed - depends on your prefab orientation)
-        // spawnedStartCircle.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        // --- NEW: Start Looping Sound ---
+        if (audioSource != null && startCircleLoopSound != null)
+        {
+            audioSource.clip = startCircleLoopSound;
+            audioSource.loop = true;
+            audioSource.Play();
+            Debug.Log($"{TAG} 🔊 Start circle looping sound started.");
+        }
         
         Debug.Log($"{TAG} 🎯 Start circle spawned at {circlePos} ({circleSpawnDistance}m behind building)");
         Debug.Log($"{TAG} 📍 Building position: {buildingPos}");
@@ -299,10 +306,11 @@ public class overall_game_play : MonoBehaviour
     {
         isWaitingAtStartLocation = false;
 
-        // Play sound effect
-        if (audioSource != null && clickSound != null)
-            audioSource.PlayOneShot(clickSound);
-
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+            audioSource.loop = false; // Reset loop to false for one-shots
+        }
         // Destroy the circle
         if (spawnedStartCircle != null)
         {

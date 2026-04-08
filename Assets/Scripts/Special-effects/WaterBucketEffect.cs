@@ -33,8 +33,9 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private float rainDuration          = 5f;    // Seconds rain lasts
     [SerializeField] private int   bonusCatSpawns        = 15;    // Number of cats to spawn visually
     [SerializeField] private float catSpawnInterval      = 0.3f;  // Seconds between each cat spawn
+    [SerializeField] private float bucketLifetime = 10f; // NEW: How long the bucket stays visible
 
-    [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
+    [Header("Audio")]
     [Tooltip("Drag a DIFFERENT AudioSource here, NOT the main game AudioSource. This prevents sound conflicts.")]
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioClip   collectSound;           // One-shot SFX when bucket collected
@@ -124,6 +125,8 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
             effectAudioSource.Play();
             Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
         }
+        // --- NEW: Start the despawn timer ---
+        StartCoroutine(BucketLifetimeRoutine());
     }
 
     private void CollectBucket(Vector3 buildingPosition)
@@ -204,6 +207,26 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         }
         
         Debug.Log($"{TAG} 🐱 Finished spawning all {bonusCatSpawns} bonus cats!");
+    }
+
+    private IEnumerator BucketLifetimeRoutine()
+    {
+        yield return new WaitForSeconds(bucketLifetime);
+
+        // If the bucket still exists and hasn't been collected, despawn it
+        if (spawnedBucket != null && !bucketCollected)
+        {
+            Debug.Log($"{TAG} ⏱️ Bucket lifetime expired. Despawning!");
+            
+            // Stop the "appear" sound
+            if (effectAudioSource != null && effectAudioSource.isPlaying)
+            {
+                effectAudioSource.Stop();
+            }
+
+            Destroy(spawnedBucket);
+            // We leave bucketHasSpawned as true so it doesn't try to spawn again this round
+        }
     }
 
     private void CleanUp()
