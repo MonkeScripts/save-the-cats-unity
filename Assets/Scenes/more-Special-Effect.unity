@@ -7351,7 +7351,7 @@ MonoBehaviour:
   greenShardPrefab: {fileID: 3928998189374746443, guid: 651d97896a8fe374e8485bf852f1ee93, type: 3}
   greenOrbPrefab: {fileID: 1149293899838133914, guid: 8d86c3e365035454b90c9f12830086e8, type: 3}
   shardSpawnTime: 40
-  shardDuration: 5
+  shardDuration: 6
   shardSpawnDistance: 1
   shardTriggerDistance: 0.6
   shieldDuration: 15
@@ -7378,7 +7378,7 @@ MonoBehaviour:
   iceShardPrefab: {fileID: 683182934616091483, guid: f28c3bb301c56c9428ab0656089195d9, type: 3}
   iceEffectPrefab: {fileID: 584207449403360073, guid: ad7287d001e0b23478a18306f47c65fa, type: 3}
   shardSpawnTime: 20
-  shardDuration: 5
+  shardDuration: 6
   shardSpawnDistance: 0.8
   shardTriggerDistance: 0.7
   freezeDuration: 15
@@ -7404,7 +7404,7 @@ MonoBehaviour:
   waterBucketPrefab: {fileID: 7257815788572247380, guid: 1a31e92b567ffe6449dd4e6b74f64b0a, type: 3}
   rainEffectPrefab: {fileID: 8363755088263445428, guid: e4e29c120427e2d45a6ca7dc913c1072, type: 3}
   bucketSpawnTime: 55
-  bucketDuration: 5
+  bucketDuration: 6
   bucketSpawnDistance: 0.9
   bucketTriggerDistance: 0.6
   rainDuration: 5
