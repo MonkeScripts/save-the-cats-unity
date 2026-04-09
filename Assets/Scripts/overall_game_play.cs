@@ -99,6 +99,7 @@ public class overall_game_play : MonoBehaviour
     private bool    isTimePaused    = false;
     private int     catMultiplier   = 1;
     private GameObject currentActiveExerciseModel;
+    private SlackerBar slackerBar;
 
     // Start location state
     private bool       isWaitingAtStartLocation = false;
@@ -122,6 +123,7 @@ public class overall_game_play : MonoBehaviour
     {
         Debug.Log($"{TAG} Awake: Initializing AR Exercise Game.");
         trackedImageManager = GetComponent<ARTrackedImageManager>();
+        slackerBar = GetComponent<SlackerBar>();
 
         // Hide all UI except scanning panel
         if (startButton            != null) startButton.SetActive(false);
@@ -471,6 +473,14 @@ public class overall_game_play : MonoBehaviour
 
         SpawnExercisePrefab();
         isGameActive   = true;
+        slackerBar?.StartGame(
+            () => catCount,
+            (newCount) => {
+                catCount = newCount;
+                if (catCountText != null) catCountText.text = $"{catCount}";
+            }
+        );
+
         isCountingDown = false;
 
         // NEW: Set duration based on exercise type
@@ -502,6 +512,7 @@ public class overall_game_play : MonoBehaviour
         catMultiplier = 1;
         timeLeft     = 0;
         isReadyForExerciseSelection = false;
+        slackerBar?.EndGame();
 
         if (audioSource != null)
         {
@@ -581,6 +592,7 @@ public class overall_game_play : MonoBehaviour
         isTimePaused     = false;
         catMultiplier    = 1;
         isReadyForExerciseSelection = false;  // NEW: Not ready until circle is reached
+        slackerBar?.ResetForNewRound();
         
         SpawnStartCircle();
         
@@ -733,6 +745,7 @@ public class overall_game_play : MonoBehaviour
         {
             Debug.Log($"{TAG} ✅ Correct {selectedExercise} rep!");
             mqttSpawnQueue.Enqueue(true);
+            slackerBar?.OnRepCompleted();
         }
         else
         {
