@@ -115,7 +115,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         shardHasSpawned = true;
         
         // Spawn shard to the LEFT of the building (negative X)
-        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0f, 0f);
+        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0.1f, 0f);
         spawnedShard = Instantiate(iceShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — ice shard spawned at {shardPos}.");
         Debug.Log($"{TAG} ⚠️ HURRY! Ice shard will disappear in {shardDuration} seconds!");
@@ -209,7 +209,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         OnTimePause?.Invoke(true);
 
         // NEW: Start freeze bar
-        FreezeTimerBar freezeBar = FindObjectOfType<FreezeTimerBar>();
+        FreezeTimerBar freezeBar = FindFirstObjectByType<FreezeTimerBar>();
         if (freezeBar != null)
             freezeBar.StartBar(freezeDuration);
         else

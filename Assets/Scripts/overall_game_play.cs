@@ -536,6 +536,8 @@ public class overall_game_play : MonoBehaviour
 
         if (ClimberAltArmLegGameMode.Instance != null) ClimberAltArmLegGameMode.Instance.Reset();
         if (StartCircleAnchor.Instance != null) StartCircleAnchor.Instance.Reset();
+        FreezeTimerBar freezeBar = FindFirstObjectByType<FreezeTimerBar>();
+        if (freezeBar != null) freezeBar.HideBar();
     }
 
     // ──────────────────────────────────────────────

@@ -5,6 +5,15 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: dd029ccdf99a7114e9b914380ab1e31e
+  - enabled: 1
+    path: Assets/Scenes/more-Special-Effect.unity
+    guid: c055f574ac704bb47acca0d3783fc08a
+  - enabled: 1
+    path: Assets/Scenes/demo-scene.unity
+    guid: cb3d9cd937ba5694d8f6dcf0a1bf2128
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 4755b35b590504809a7525fd2109c2e2
@@ -26,9 +35,6 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Special-Effect.unity
     guid: dbcca4cf0d4c903408aef3a4783a7df0
-  - enabled: 1
-    path: Assets/Scenes/more-Special-Effect.unity
-    guid: c055f574ac704bb47acca0d3783fc08a
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}
