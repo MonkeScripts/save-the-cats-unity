@@ -13,6 +13,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SlackerBar : MonoBehaviour
 {
@@ -22,8 +23,9 @@ public class SlackerBar : MonoBehaviour
     // Inspector fields
     // ──────────────────────────────────────────────
     [Header("Slacker Bar UI")]
-    [SerializeField] private GameObject manaBarPanel;    // Parent ManaBar GameObject (show/hide)
-    [SerializeField] private Image      currentManaBar;  // The ManaBar Image inside ManaBarMask
+    [SerializeField] private GameObject    manaBarPanel;    // Parent ManaBar GameObject (show/hide)
+    [SerializeField] private Image         currentManaBar;  // The ManaBar Image inside ManaBarMask
+    [SerializeField] private TextMeshProUGUI slackerText;   // Text that appears with the bar
 
     [Header("Bar Settings")]
     [SerializeField] private float maxManaPoint        = 10f;  // Maximum bar value
@@ -48,8 +50,10 @@ public class SlackerBar : MonoBehaviour
     // ──────────────────────────────────────────────
     void Awake()
     {
-        // Hide bar on start
+        // Hide bar and text on start
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
+        if (slackerText  != null) slackerText.gameObject.SetActive(false);
+        Debug.Log($"{TAG} 🔄 Awake: Bar and text hidden.");
     }
 
     void Update()
@@ -105,9 +109,11 @@ public class SlackerBar : MonoBehaviour
 
         UpdateManaBar();
 
+        // Show bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(true);
+        if (slackerText  != null) slackerText.gameObject.SetActive(true);
 
-        Debug.Log($"{TAG} ✅ Game started. Bar reset to 0/{maxManaPoint}");
+        Debug.Log($"{TAG} ✅ Game started. Bar and text shown. Reset to 0/{maxManaPoint}");
     }
 
     /// <summary>
@@ -117,9 +123,11 @@ public class SlackerBar : MonoBehaviour
     {
         isGameActive = false;
 
+        // Hide bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
+        if (slackerText  != null) slackerText.gameObject.SetActive(false);
 
-        Debug.Log($"{TAG} 🏁 Game ended. Bar hidden.");
+        Debug.Log($"{TAG} 🏁 Game ended. Bar and text hidden.");
     }
 
     /// <summary>
@@ -157,9 +165,11 @@ public class SlackerBar : MonoBehaviour
 
         UpdateManaBar();
 
+        // Hide bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
+        if (slackerText  != null) slackerText.gameObject.SetActive(false);
 
-        Debug.Log($"{TAG} 🔄 Reset for new round.");
+        Debug.Log($"{TAG} 🔄 Reset for new round. Bar and text hidden.");
     }
 
     // ──────────────────────────────────────────────

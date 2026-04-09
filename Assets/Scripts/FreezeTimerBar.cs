@@ -1,8 +1,9 @@
 // FreezeTimerBar.cs
 // Attach to XR Origin.
-// Controls the freeze timer slider shown during ice power-up.
-// Setup: UI -> Canvas -> Slider, delete the Handle child object.
-// Set Min Value = 0, Max Value = 1, disable Interactable.
+// Controls the freeze timer bar shown during ice power-up.
+// Uses the same ManaBar asset sliding technique as SlackerBar.
+// Duplicate your ManaBar GameObject and name it FreezeBar,
+// then assign the inner ManaBar Image to currentFreezeBar.
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,29 +13,18 @@ public class FreezeTimerBar : MonoBehaviour
     private const string TAG = "[FREEZE_BAR]";
 
     [Header("Freeze Bar UI")]
-    [SerializeField] private GameObject freezeBarPanel;  // Parent panel to show/hide
-    [SerializeField] private Slider     freezeSlider;    // The slider component
-    [SerializeField] private Image      fillImage;       // The fill area image for colour change
-
-    [Header("Bar Colours")]
-    [SerializeField] private Color fullColour  = new Color(0.4f, 0.8f, 1f);   // Light blue when full
-    [SerializeField] private Color emptyColour = new Color(0.1f, 0.2f, 0.5f); // Dark blue when empty
+    [SerializeField] private GameObject freezeBarPanel;   // The FreezeBar parent GameObject
+    [SerializeField] private Image      currentFreezeBar; // The ManaBar Image inside FreezeBarMask
 
     private float totalFreezeDuration = 0f;
     private float timeRemaining       = 0f;
     private bool  isActive            = false;
 
+    // ──────────────────────────────────────────────
+    // Unity lifecycle
+    // ──────────────────────────────────────────────
     void Awake()
     {
-        // Make sure slider is set up correctly
-        if (freezeSlider != null)
-        {
-            freezeSlider.minValue     = 0f;
-            freezeSlider.maxValue     = 1f;
-            freezeSlider.value        = 1f;
-            freezeSlider.interactable = false;  // Player cannot drag it
-        }
-
         if (freezeBarPanel != null) freezeBarPanel.SetActive(false);
     }
 
@@ -52,16 +42,13 @@ public class FreezeTimerBar : MonoBehaviour
             return;
         }
 
-        // Update slider value (1 = full, 0 = empty)
-        float fillAmount = timeRemaining / totalFreezeDuration;
-
-        if (freezeSlider != null)
-            freezeSlider.value = fillAmount;
-
-        // Lerp colour from empty to full based on remaining time
-        if (fillImage != null)
-            fillImage.color = Color.Lerp(emptyColour, fullColour, fillAmount);
+        // Update bar fill
+        UpdateFreezeBar();
     }
+
+    // ──────────────────────────────────────────────
+    // Public API
+    // ──────────────────────────────────────────────
 
     /// <summary>
     /// Call this when ice power-up is collected to start the bar countdown.
@@ -72,13 +59,8 @@ public class FreezeTimerBar : MonoBehaviour
         timeRemaining       = duration;
         isActive            = true;
 
-        if (freezeSlider != null)
-        {
-            freezeSlider.value = 1f;
-        }
-
-        if (fillImage != null)
-            fillImage.color = fullColour;
+        // Show full bar immediately
+        UpdateFreezeBar();
 
         if (freezeBarPanel != null) freezeBarPanel.SetActive(true);
 
@@ -93,5 +75,32 @@ public class FreezeTimerBar : MonoBehaviour
         isActive = false;
         if (freezeBarPanel != null) freezeBarPanel.SetActive(false);
         Debug.Log($"{TAG} ❄️ Freeze bar hidden.");
+    }
+
+    // ──────────────────────────────────────────────
+    // Private helpers
+    // ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Slides the FreezeBar image inside FreezeBarMask to show remaining time.
+    /// Same sliding technique as SlackerBar/ManaBar asset.
+    /// </summary>
+    private void UpdateFreezeBar()
+    {
+        if (currentFreezeBar == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ currentFreezeBar Image not assigned!");
+            return;
+        }
+
+        // 1.0 = full (just collected), 0.0 = empty (expired)
+        float ratio = timeRemaining / totalFreezeDuration;
+
+        currentFreezeBar.rectTransform.localPosition = new Vector3(
+            currentFreezeBar.rectTransform.rect.width * ratio - currentFreezeBar.rectTransform.rect.width,
+            0f,
+            0f);
+
+        Debug.Log($"{TAG} ❄️ Freeze bar: {timeRemaining:F1}/{totalFreezeDuration}s (ratio: {ratio:F2})");
     }
 }
