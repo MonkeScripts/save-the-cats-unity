@@ -79,8 +79,10 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         // Phase 2: Poll for phone proximity (only if shard exists and not expired)
         if (shardHasSpawned && !shardCollected && !shardExpired && spawnedShard != null)
         {
-            float dist = Vector3.Distance(phonePosition, spawnedShard.transform.position);
-            Debug.Log($"{TAG} 📏 Phone↔Shard dist: {dist:F2} m (trigger < {shardTriggerDistance} m)");
+            float dx = phonePosition.x - spawnedShard.transform.position.x;
+            float dz = phonePosition.z - spawnedShard.transform.position.z;
+            float dist = Mathf.Sqrt(dx * dx + dz * dz);
+            Debug.Log($"{TAG} 📏 Phone↔Shard XZ dist: {dist:F2} m (trigger < {shardTriggerDistance} m)");
 
             if (dist < shardTriggerDistance)
             {

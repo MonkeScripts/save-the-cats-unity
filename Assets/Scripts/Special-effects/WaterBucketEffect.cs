@@ -80,8 +80,10 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
         // Phase 2: Poll for phone proximity (only if bucket exists and not expired)
         if (bucketHasSpawned && !bucketCollected && !bucketExpired && spawnedBucket != null)
         {
-            float dist = Vector3.Distance(phonePosition, spawnedBucket.transform.position);
-            Debug.Log($"{TAG} 📏 Phone↔Bucket dist: {dist:F2} m (trigger < {bucketTriggerDistance} m)");
+            float dx = phonePosition.x - spawnedBucket.transform.position.x;
+            float dz = phonePosition.z - spawnedBucket.transform.position.z;
+            float dist = Mathf.Sqrt(dx * dx + dz * dz);
+            Debug.Log($"{TAG} 📏 Phone↔Bucket XZ dist: {dist:F2} m (trigger < {bucketTriggerDistance} m)");
 
             if (dist < bucketTriggerDistance)
             {
