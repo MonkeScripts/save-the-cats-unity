@@ -14,6 +14,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class SlackerBar : MonoBehaviour
 {
@@ -23,9 +24,19 @@ public class SlackerBar : MonoBehaviour
     // Inspector fields
     // ──────────────────────────────────────────────
     [Header("Slacker Bar UI")]
-    [SerializeField] private GameObject    manaBarPanel;    // Parent ManaBar GameObject (show/hide)
-    [SerializeField] private Image         currentManaBar;  // The ManaBar Image inside ManaBarMask
-    [SerializeField] private TextMeshProUGUI slackerText;   // Text that appears with the bar
+    [SerializeField] private GameObject      manaBarPanel;    // Parent ManaBar GameObject (show/hide)
+    [SerializeField] private Image           currentManaBar;  // The ManaBar Image inside ManaBarMask
+    [SerializeField] private TextMeshProUGUI slackerText;     // Text that appears with the bar
+
+    [Header("Penalty Floating Text")]
+    [SerializeField] private GameObject floatingTextPrefab;      // Prefab with TextMeshProUGUI component
+    [SerializeField] private Transform  floatingTextSpawnPoint;  // Place this near your cat count panel
+    [SerializeField] private float      floatSpeed    = 80f;     // How fast text moves up (UI units/sec)
+    [SerializeField] private float      floatDuration = 1.2f;    // How long the animation lasts
+
+    [Header("Penalty Audio")]
+    [SerializeField] private AudioSource penaltyAudioSource;  // Use a SEPARATE AudioSource!
+    [SerializeField] private AudioClip   penaltySound;        // Your "minus 5" wav clip
 
     [Header("Bar Settings")]
     [SerializeField] private float maxManaPoint        = 10f;  // Maximum bar value
@@ -50,7 +61,6 @@ public class SlackerBar : MonoBehaviour
     // ──────────────────────────────────────────────
     void Awake()
     {
-        // Hide bar and text on start
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
         if (slackerText  != null) slackerText.gameObject.SetActive(false);
         Debug.Log($"{TAG} 🔄 Awake: Bar and text hidden.");
@@ -65,7 +75,7 @@ public class SlackerBar : MonoBehaviour
 
         if (inactivityTimer >= inactivityThreshold)
         {
-            inactivityTimer = 0f;  // Reset timer but keep counting
+            inactivityTimer = 0f;
             DecreaseMana(1f);
             Debug.Log($"{TAG} 😴 Inactivity! -1 state. Current: {manaPoint}/{maxManaPoint}");
         }
@@ -83,7 +93,6 @@ public class SlackerBar : MonoBehaviour
         }
         else
         {
-            // Reset penalty timer when not at 0
             penaltyTimer = 0f;
         }
     }
@@ -92,15 +101,11 @@ public class SlackerBar : MonoBehaviour
     // Public API - called by overall_game_play
     // ──────────────────────────────────────────────
 
-    /// <summary>
-    /// Call when game starts. Pass cat count getter and setter.
-    /// </summary>
     public void StartGame(System.Func<int> catCountGetter, System.Action<int> catCountSetter)
     {
         getCatCount = catCountGetter;
         setCatCount = catCountSetter;
 
-        // Reset everything
         manaPoint       = 0f;
         repCounter      = 0;
         inactivityTimer = 0f;
@@ -109,35 +114,26 @@ public class SlackerBar : MonoBehaviour
 
         UpdateManaBar();
 
-        // Show bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(true);
         if (slackerText  != null) slackerText.gameObject.SetActive(true);
 
         Debug.Log($"{TAG} ✅ Game started. Bar and text shown. Reset to 0/{maxManaPoint}");
     }
 
-    /// <summary>
-    /// Call when round ends.
-    /// </summary>
     public void EndGame()
     {
         isGameActive = false;
 
-        // Hide bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
         if (slackerText  != null) slackerText.gameObject.SetActive(false);
 
         Debug.Log($"{TAG} 🏁 Game ended. Bar and text hidden.");
     }
 
-    /// <summary>
-    /// Call every time a correct rep is detected.
-    /// </summary>
     public void OnRepCompleted()
     {
         if (!isGameActive) return;
 
-        // Reset inactivity timer on every rep
         inactivityTimer = 0f;
         Debug.Log($"{TAG} 💪 Rep completed! Inactivity timer reset.");
 
@@ -146,15 +142,12 @@ public class SlackerBar : MonoBehaviour
 
         if (repCounter >= 2)
         {
-            repCounter = 0;  // Reset counter
+            repCounter = 0;
             IncreaseMana(1f);
             Debug.Log($"{TAG} ⬆️ +1 state! Current: {manaPoint}/{maxManaPoint}");
         }
     }
 
-    /// <summary>
-    /// Call on Play Again to reset bar for new round.
-    /// </summary>
     public void ResetForNewRound()
     {
         manaPoint       = 0f;
@@ -165,7 +158,6 @@ public class SlackerBar : MonoBehaviour
 
         UpdateManaBar();
 
-        // Hide bar and text together
         if (manaBarPanel != null) manaBarPanel.SetActive(false);
         if (slackerText  != null) slackerText.gameObject.SetActive(false);
 
@@ -203,16 +195,102 @@ public class SlackerBar : MonoBehaviour
         }
 
         int currentCats = getCatCount();
-        int newCats     = Mathf.Max(0, currentCats - 5);  // Cannot go below 0
+        int newCats     = Mathf.Max(0, currentCats - 5);
         setCatCount(newCats);
 
         Debug.Log($"{TAG} 😱 At 0/10! -5 cats penalty! {currentCats} → {newCats} cats");
+
+        // ── Play penalty sound ──
+        PlayPenaltySound();
+
+        // ── Spawn floating penalty text ──
+        SpawnFloatingPenaltyText();
     }
 
-    /// <summary>
-    /// Slides the ManaBar image inside ManaBarMask to show fill level.
-    /// Taken from HealthSystem asset - uses localPosition sliding technique.
-    /// </summary>
+    private void PlayPenaltySound()
+    {
+        if (penaltyAudioSource == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ penaltyAudioSource not assigned!");
+            return;
+        }
+
+        if (penaltySound == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ penaltySound clip not assigned!");
+            return;
+        }
+
+        // Stop any currently playing penalty sound first
+        // so it doesn't overlap if penalty fires rapidly
+        if (penaltyAudioSource.isPlaying)
+            penaltyAudioSource.Stop();
+
+        penaltyAudioSource.PlayOneShot(penaltySound);
+        Debug.Log($"{TAG} 🔊 Penalty sound played!");
+    }
+
+    private void SpawnFloatingPenaltyText()
+    {
+        if (floatingTextPrefab == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ floatingTextPrefab not assigned!");
+            return;
+        }
+
+        if (floatingTextSpawnPoint == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ floatingTextSpawnPoint not assigned!");
+            return;
+        }
+
+        // Spawn as child of Canvas so it renders correctly in UI space
+        GameObject floatingObj = Instantiate(
+            floatingTextPrefab,
+            floatingTextSpawnPoint.position,
+            Quaternion.identity,
+            floatingTextSpawnPoint.parent   // Same Canvas parent
+        );
+
+        TextMeshProUGUI tmp = floatingObj.GetComponent<TextMeshProUGUI>();
+        if (tmp == null)
+        {
+            Debug.LogWarning($"{TAG} ⚠️ floatingTextPrefab has no TextMeshProUGUI component!");
+            Destroy(floatingObj);
+            return;
+        }
+
+        tmp.text  = "-5 😿";
+        tmp.color = new Color(1f, 0f, 0f, 1f); // Solid red
+
+        StartCoroutine(FloatAndFade(floatingObj, tmp));
+        Debug.Log($"{TAG} 💬 Floating penalty text spawned!");
+    }
+
+    private IEnumerator FloatAndFade(GameObject obj, TextMeshProUGUI tmp)
+    {
+        float         elapsed  = 0f;
+        RectTransform rect     = obj.GetComponent<RectTransform>();
+        Vector2       startPos = rect.anchoredPosition;
+
+        while (elapsed < floatDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / floatDuration;
+
+            // Move upward in UI space
+            rect.anchoredPosition = startPos + Vector2.up * (floatSpeed * elapsed);
+
+            // Fade from 1 → 0
+            tmp.color = new Color(1f, 0f, 0f, 1f - progress);
+
+            yield return null;
+        }
+
+        Destroy(obj);
+        Debug.Log($"{TAG} 💬 Floating penalty text destroyed.");
+    }
+
     private void UpdateManaBar()
     {
         if (currentManaBar == null)
