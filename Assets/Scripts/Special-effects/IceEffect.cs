@@ -30,7 +30,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private float shardDuration        = 5f;    // How long shard stays (limited time!)
     [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres away from building
     [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
-    [SerializeField] private float freezeDuration       = 15f;   // Seconds time is paused
+    [SerializeField] private float freezeDuration       = 7f;   // Seconds time is paused
     [SerializeField] private float infoPanelDuration    = 5f;    // How long info panel shows
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
@@ -117,7 +117,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
         shardHasSpawned = true;
         
         // Spawn shard to the LEFT of the building (negative X)
-        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0.2f, 0f);
+        Vector3 shardPos = buildingPosition + new Vector3(-shardSpawnDistance, 0.4f, 0f);
         spawnedShard = Instantiate(iceShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — ice shard spawned at {shardPos}.");
         Debug.Log($"{TAG} ⚠️ HURRY! Ice shard will disappear in {shardDuration} seconds!");

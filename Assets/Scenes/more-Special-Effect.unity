@@ -1083,7 +1083,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1570155772}
   - {fileID: 1471544014}
   - {fileID: 1621701723}
   - {fileID: 1679054238}
@@ -1106,6 +1105,7 @@ RectTransform:
   - {fileID: 1687197918}
   - {fileID: 1599961279}
   - {fileID: 1131484310}
+  - {fileID: 1570155772}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1351,7 +1351,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: You saved 13 Cats!
+  m_text: You saved 555 Cats!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7166910343620b941a118137d977f8fc, type: 2}
   m_sharedMaterial: {fileID: 2765332488024186255, guid: 7166910343620b941a118137d977f8fc, type: 2}
@@ -5112,7 +5112,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1570155771}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5122,7 +5122,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 300}
+  m_AnchoredPosition: {x: 0, y: 150}
   m_SizeDelta: {x: 600, y: 270}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1570155773
@@ -6871,7 +6871,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 70, y: 10}
-  m_SizeDelta: {x: 500, y: 100}
+  m_SizeDelta: {x: 700, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1981007131
 MonoBehaviour:
@@ -6893,7 +6893,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 13
+  m_text: 555
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7166910343620b941a118137d977f8fc, type: 2}
   m_sharedMaterial: {fileID: 2765332488024186255, guid: 7166910343620b941a118137d977f8fc, type: 2}
@@ -8161,12 +8161,12 @@ MonoBehaviour:
   startCircleAudioSource: {fileID: 678173551}
   startCircleSound: {fileID: 8300000, guid: e1280a53b3630de4eb9b1a9f476ca414, type: 3}
   gameDuration: 60
-  squatPrefab: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
-  lungePrefab: {fileID: 2550208501883326453, guid: 6e7c0eef1ac658d4e9e4369c32929cda, type: 3}
   highKneePrefab: {fileID: 5121918052386228165, guid: 56e949906ac971e408ec6aec815d0b39, type: 3}
-  climbersPrefab: {fileID: 6121435290427179186, guid: 070125e754cd7cd4bb4b58db42d3d10b, type: 3}
-  altArmLegPrefab: {fileID: 7579628421264225003, guid: 34423da9d796cd14b81d258ed236f3c5, type: 3}
-  chairTricepPrefab: {fileID: 988390728006736675, guid: 083f18059286d01449b5d095bf7c05eb, type: 3}
+  pushUpPrefab: {fileID: 6121435290427179186, guid: 070125e754cd7cd4bb4b58db42d3d10b, type: 3}
+  sitUpPrefab: {fileID: 2550208501883326453, guid: 6e7c0eef1ac658d4e9e4369c32929cda, type: 3}
+  lungePrefab: {fileID: 4357177784744349774, guid: 34b5fba00ee55c14cb5c010e946857c2, type: 3}
+  squatPrefab: {fileID: 988390728006736675, guid: 083f18059286d01449b5d095bf7c05eb, type: 3}
+  overheadHoldPrefab: {fileID: 5816610166528877384, guid: cf850a0eb57451f4eadf99afe30a730e, type: 3}
   audioSource: {fileID: 678173551}
   tickSound: {fileID: 8300000, guid: de02b3d8ea5aee943bf05748c1b6d538, type: 3}
   goSound: {fileID: 8300000, guid: 186c9c4f65a181845b596fcfa983bc63, type: 3}
@@ -8195,10 +8195,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GrowthEffect
   greenShardPrefab: {fileID: 3928998189374746443, guid: 651d97896a8fe374e8485bf852f1ee93, type: 3}
   greenOrbPrefab: {fileID: 1149293899838133914, guid: 8d86c3e365035454b90c9f12830086e8, type: 3}
-  shardSpawnTime: 40
+  shardSpawnTime: 35
   shardDuration: 7
   shardSpawnDistance: 1
-  shardTriggerDistance: 0.6
+  shardTriggerDistance: 0.7
   shieldDuration: 15
   catMultiplier: 3
   infoPanelDuration: 5
@@ -8222,11 +8222,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::IceEffect
   iceShardPrefab: {fileID: 683182934616091483, guid: f28c3bb301c56c9428ab0656089195d9, type: 3}
   iceEffectPrefab: {fileID: 584207449403360073, guid: ad7287d001e0b23478a18306f47c65fa, type: 3}
-  shardSpawnTime: 20
+  shardSpawnTime: 15
   shardDuration: 7
-  shardSpawnDistance: 0.8
+  shardSpawnDistance: 1
   shardTriggerDistance: 0.7
-  freezeDuration: 15
+  freezeDuration: 7
   infoPanelDuration: 5
   effectAudioSource: {fileID: 11688001}
   crystalAppearSound: {fileID: 8300000, guid: 928264cecf05f354ba20a672965b4c3b, type: 3}
@@ -8248,10 +8248,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaterBucketEffect
   waterBucketPrefab: {fileID: 7257815788572247380, guid: 1a31e92b567ffe6449dd4e6b74f64b0a, type: 3}
   rainEffectPrefab: {fileID: 8363755088263445428, guid: e4e29c120427e2d45a6ca7dc913c1072, type: 3}
-  bucketSpawnTime: 55
+  bucketSpawnTime: 50
   bucketDuration: 7
-  bucketSpawnDistance: 0.9
-  bucketTriggerDistance: 0.6
+  bucketSpawnDistance: 1
+  bucketTriggerDistance: 0.7
   rainDuration: 5
   bonusCatSpawns: 15
   catSpawnInterval: 0.2
@@ -8271,7 +8271,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2512387470422636669}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83755fce8f4b9674b97280cfd724538c, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f2dd7ed10ef8bb4bb9dc0b129a9f52a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClimberAltArmLegGameMode
 --- !u!114 &2512387470422636679
@@ -8320,7 +8320,7 @@ MonoBehaviour:
   penaltyAudioSource: {fileID: 1254582296}
   penaltySound: {fileID: 8300000, guid: 8c5a88a600330fa4583ba0a61ca4d913, type: 3}
   maxManaPoint: 10
-  inactivityThreshold: 5
+  inactivityThreshold: 4
   penaltyInterval: 3
 --- !u!4 &2512387470860572925
 Transform:

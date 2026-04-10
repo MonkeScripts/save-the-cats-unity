@@ -15,7 +15,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Concurrent;
 
-public enum ExerciseType { None, Squat, Lunge, HighKnee, Climbers, AltArmLeg, ChairTricep }
+public enum ExerciseType { None, HighKnee, PushUp, SitUp, Lunge, Squat, OverheadHold }
 
 public class overall_game_play : MonoBehaviour
 {
@@ -62,12 +62,12 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private float gameDuration = 60f;
 
     [Header("Exercise Prefabs")]
-    [SerializeField] private GameObject squatPrefab;
-    [SerializeField] private GameObject lungePrefab;
     [SerializeField] private GameObject highKneePrefab;
-    [SerializeField] private GameObject climbersPrefab;
-    [SerializeField] private GameObject altArmLegPrefab;
-    [SerializeField] private GameObject chairTricepPrefab;
+    [SerializeField] private GameObject pushUpPrefab;
+    [SerializeField] private GameObject sitUpPrefab;
+    [SerializeField] private GameObject lungePrefab;
+    [SerializeField] private GameObject squatPrefab;
+    [SerializeField] private GameObject overheadHoldPrefab;
 
     [Header("Audio Settings")]
     [SerializeField] private AudioSource audioSource;
@@ -415,21 +415,21 @@ public class overall_game_play : MonoBehaviour
                 {
                     switch (message)
                     {
-                        case "0": selectedExercise = ExerciseType.Squat;       break;
-                        case "1": selectedExercise = ExerciseType.Lunge;       break;
-                        case "2": selectedExercise = ExerciseType.HighKnee;    break;
-                        case "3": selectedExercise = ExerciseType.Climbers;    break;
-                        case "4": selectedExercise = ExerciseType.AltArmLeg;   break;
-                        case "5": selectedExercise = ExerciseType.ChairTricep; break;
+                        case "0": selectedExercise = ExerciseType.HighKnee;      break;
+                        case "1": selectedExercise = ExerciseType.PushUp;        break;
+                        case "2": selectedExercise = ExerciseType.SitUp;         break;
+                        case "3": selectedExercise = ExerciseType.Lunge;         break;
+                        case "4": selectedExercise = ExerciseType.Squat;         break;
+                        case "5": selectedExercise = ExerciseType.OverheadHold;  break;
                     }
 
                     if (selectedExercise != ExerciseType.None)
                     {
                         Debug.Log($"{TAG} Exercise {selectedExercise} selected. Queuing countdown.");
 
-                        //Tell special mode manager which exercise was selected
-                        if (ClimberAltArmLegGameMode.Instance != null)
-                            ClimberAltArmLegGameMode.Instance.SetSpecialMode(selectedExercise);
+                        // Tell special mode manager which exercise was selected
+                        if (PushUpSitUpGameMode.Instance != null)
+                            PushUpSitUpGameMode.Instance.SetSpecialMode(selectedExercise);
 
                         mqttSpawnQueue.Enqueue(false);
                     }
@@ -487,9 +487,8 @@ public class overall_game_play : MonoBehaviour
 
         isCountingDown = false;
 
-        // NEW: Set duration based on exercise type
-        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null &&
-                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
+        bool isSpecialMode = PushUpSitUpGameMode.Instance != null &&
+                     PushUpSitUpGameMode.Instance.IsSpecialMode;
 
         if (isSpecialMode)
         {
@@ -549,7 +548,7 @@ public class overall_game_play : MonoBehaviour
         catCountPanel.SetActive(false);
         Debug.Log($"{TAG} Round ended. Cats: {catCount}");
 
-        if (ClimberAltArmLegGameMode.Instance != null) ClimberAltArmLegGameMode.Instance.Reset();
+        if (PushUpSitUpGameMode.Instance != null) PushUpSitUpGameMode.Instance.Reset();
         if (StartCircleAnchor.Instance != null) StartCircleAnchor.Instance.Reset();
         FreezeTimerBar freezeBar = FindFirstObjectByType<FreezeTimerBar>();
         if (freezeBar != null) freezeBar.HideBar();
@@ -609,7 +608,7 @@ public class overall_game_play : MonoBehaviour
 
         Debug.Log($"{TAG} PlayAgain: Walk to start location for new round.");
 
-        if (ClimberAltArmLegGameMode.Instance != null) ClimberAltArmLegGameMode.Instance.Reset();
+        if (PushUpSitUpGameMode.Instance != null) PushUpSitUpGameMode.Instance.Reset();
         if (StartCircleAnchor.Instance != null) StartCircleAnchor.Instance.Reset();
     }
 
@@ -628,20 +627,17 @@ public class overall_game_play : MonoBehaviour
 
     // ──────────────────────────────────────────────
     // Cat spawning
-    // ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     public void SpawnCatFromCube()
     {
-        // NEW: Determine spawn origin based on special mode
-        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null &&
-                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
-
-        bool useStartCircle = isSpecialMode &&
+        // Only PushUp spawns cats at start circle
+        bool isPushUpMode = selectedExercise == ExerciseType.PushUp &&
                             StartCircleAnchor.Instance != null &&
                             StartCircleAnchor.Instance.HasPosition();
 
-        if (useStartCircle)
+        if (isPushUpMode)
         {
-            // ── Special mode: spawn cats from START CIRCLE position ──
+            // PushUp: spawn cats at START CIRCLE
             catCount++;
             if (catCountText != null) catCountText.text = $"{catCount}";
 
@@ -661,11 +657,11 @@ public class overall_game_play : MonoBehaviour
             }
 
             Instantiate(catPrefab, spawnPos, spawnRotation);
-            Debug.Log($"{TAG} 🐱 Cat spawned at START CIRCLE. Total: {catCount}");
+            Debug.Log($"{TAG} 🐱 Cat spawned at START CIRCLE (PushUp). Total: {catCount}");
         }
         else
         {
-            // ── Normal mode: spawn cats from QR code position ──
+            // SitUp + all others: spawn cats at QR CODE
             foreach (var cubeEntry in spawnedCubes)
             {
                 GameObject cube = cubeEntry.Value;
@@ -736,12 +732,12 @@ public class overall_game_play : MonoBehaviour
     {
         bool isCorrect = selectedExercise switch
         {
-            ExerciseType.Squat       => message == "0",
-            ExerciseType.Lunge       => message == "1",
-            ExerciseType.HighKnee    => message == "2",
-            ExerciseType.Climbers    => message == "3",
-            ExerciseType.AltArmLeg   => message == "4",
-            ExerciseType.ChairTricep => message == "5",
+            ExerciseType.HighKnee     => message == "0",
+            ExerciseType.PushUp       => message == "1",
+            ExerciseType.SitUp        => message == "2",
+            ExerciseType.Lunge        => message == "3",
+            ExerciseType.Squat        => message == "4",
+            ExerciseType.OverheadHold => message == "5",
             _ => false
         };
 
@@ -754,7 +750,7 @@ public class overall_game_play : MonoBehaviour
         else
         {
             Debug.Log($"{TAG} ❌ Wrong move (got {message}, expected {(int)selectedExercise - 1})");
-            if (int.TryParse(message, out int move) && move >= 0 && move <= 5)
+            if (int.TryParse(message, out int move) && move >= 0 && move <= 6)
                 triggerWrongMoveUI = true;
         }
     }
@@ -769,19 +765,26 @@ public class overall_game_play : MonoBehaviour
 
         GameObject prefab = GetSelectedPrefab();
 
-        // NEW: Use start circle position for Climbers and AltArmLeg
-        bool isSpecialMode = ClimberAltArmLegGameMode.Instance != null && 
-                            ClimberAltArmLegGameMode.Instance.IsSpecialMode;
-
         foreach (var entry in spawnedCubes)
         {
-            Vector3    spawnPos = isSpecialMode && StartCircleAnchor.Instance != null && 
-                                StartCircleAnchor.Instance.HasPosition()
-                                ? StartCircleAnchor.Instance.GetStartCirclePosition()
-                                : entry.Value.transform.position;
+            Vector3 spawnPos;
+
+            // PushUp only: spawn at START CIRCLE
+            if (selectedExercise == ExerciseType.PushUp &&
+                StartCircleAnchor.Instance != null &&
+                StartCircleAnchor.Instance.HasPosition())
+            {
+                spawnPos = StartCircleAnchor.Instance.GetStartCirclePosition();
+                Debug.Log($"{TAG} Exercise prefab spawned at START CIRCLE (PushUp): {spawnPos}");
+            }
+            else
+            {
+                // SitUp + all others: spawn at QR CODE
+                spawnPos = entry.Value.transform.position;
+                Debug.Log($"{TAG} Exercise prefab spawned at QR CODE: {spawnPos}");
+            }
 
             Quaternion spawnRot = entry.Value.transform.rotation;
-
             currentActiveExerciseModel = Instantiate(prefab, spawnPos, spawnRot);
 
             if (fireAudioSource != null && fireSound != null)
@@ -792,20 +795,19 @@ public class overall_game_play : MonoBehaviour
                 fireAudioSource.Play();
             }
 
-            Debug.Log($"{TAG} Exercise prefab spawned at {(isSpecialMode ? "START CIRCLE" : "BUILDING")}: {spawnPos}");
             break;
         }
     }
 
     private GameObject GetSelectedPrefab() => selectedExercise switch
     {
-        ExerciseType.Squat       => squatPrefab,
-        ExerciseType.Lunge       => lungePrefab,
-        ExerciseType.HighKnee    => highKneePrefab,
-        ExerciseType.Climbers    => climbersPrefab,
-        ExerciseType.AltArmLeg   => altArmLegPrefab,
-        ExerciseType.ChairTricep => chairTricepPrefab,
-        _                        => null
+        ExerciseType.HighKnee     => highKneePrefab,
+        ExerciseType.PushUp       => pushUpPrefab,
+        ExerciseType.SitUp        => sitUpPrefab,
+        ExerciseType.Lunge        => lungePrefab,
+        ExerciseType.Squat        => squatPrefab,
+        ExerciseType.OverheadHold => overheadHoldPrefab,
+        _                         => null
     };
 
     // ──────────────────────────────────────────────
