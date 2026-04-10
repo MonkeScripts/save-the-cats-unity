@@ -48,7 +48,7 @@ public class MqttService : MonoBehaviour
 
         // Create TLS-enabled MQTT client
         client = new MqttClient(
-            "172.20.10.3", //this is to test on local machine: 127.0.0.1
+            "172.20.10.2", //this is to test on local machine: 127.0.0.1
             8883,
             true,
             caCert,

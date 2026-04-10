@@ -989,41 +989,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 144243654}
   m_CullTransparentMesh: 1
---- !u!1 &150365441
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 150365442}
-  m_Layer: 5
-  m_Name: PenaltyTextSpawnPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &150365442
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 150365441}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 202349183}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -900, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &202349179
 GameObject:
   m_ObjectHideFlags: 0
@@ -1118,7 +1083,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 150365442}
   - {fileID: 1471544014}
   - {fileID: 1621701723}
   - {fileID: 1679054238}
@@ -3390,8 +3354,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4285300644
-  m_fontColor: {r: 0.6431373, g: 0.49803922, b: 0.42352942, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -8220,10 +8184,8 @@ MonoBehaviour:
   manaBarPanel: {fileID: 1599961278}
   currentManaBar: {fileID: 2069749185}
   slackerText: {fileID: 1687197919}
-  floatingTextPrefab: {fileID: 1131484309}
-  floatingTextSpawnPoint: {fileID: 150365442}
-  floatSpeed: 80
-  floatDuration: 1.2
+  penaltyTextObject: {fileID: 1131484309}
+  flashDuration: 1
   penaltyAudioSource: {fileID: 1254582296}
   penaltySound: {fileID: 8300000, guid: 8c5a88a600330fa4583ba0a61ca4d913, type: 3}
   maxManaPoint: 10
