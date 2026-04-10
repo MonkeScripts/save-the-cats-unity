@@ -5,7 +5,7 @@
 //
 // LOGIC:
 //   - Starts at 0/10 when game begins
-//   - Every 2 correct reps → +1 state (max 10)
+//   - Every 1 correct rep → +1 state (max 10)
 //   - Every 5 seconds no reps → -1 state (min 0)
 //   - At 0/10: every 3 seconds → -5 cats (cant go below 0)
 //   - Only visible during active gameplay
@@ -45,7 +45,6 @@ public class SlackerBar : MonoBehaviour
     // Internal state
     // ──────────────────────────────────────────────
     private float manaPoint       = 0f;
-    private int   repCounter      = 0;    // Counts reps, resets every 2
     private float inactivityTimer = 0f;   // Counts up when no reps
     private float penaltyTimer    = 0f;   // Counts up when at 0/10
     private bool  isGameActive    = false;
@@ -107,7 +106,6 @@ public class SlackerBar : MonoBehaviour
         setCatCount = catCountSetter;
 
         manaPoint       = 0f;
-        repCounter      = 0;
         inactivityTimer = 0f;
         penaltyTimer    = 0f;
         isGameActive    = true;
@@ -146,21 +144,13 @@ public class SlackerBar : MonoBehaviour
         inactivityTimer = 0f;
         Debug.Log($"{TAG} 💪 Rep completed! Inactivity timer reset.");
 
-        repCounter++;
-        Debug.Log($"{TAG} 🔢 Rep counter: {repCounter}/2");
-
-        if (repCounter >= 2)
-        {
-            repCounter = 0;
-            IncreaseMana(1f);
-            Debug.Log($"{TAG} ⬆️ +1 state! Current: {manaPoint}/{maxManaPoint}");
-        }
+        IncreaseMana(1f);
+        Debug.Log($"{TAG} ⬆️ +1 state! Current: {manaPoint}/{maxManaPoint}");
     }
 
     public void ResetForNewRound()
     {
         manaPoint       = 0f;
-        repCounter      = 0;
         inactivityTimer = 0f;
         penaltyTimer    = 0f;
         isGameActive    = false;

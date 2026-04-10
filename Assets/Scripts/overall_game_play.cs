@@ -77,6 +77,10 @@ public class overall_game_play : MonoBehaviour
     [SerializeField] private AudioClip   victorySound;
     [SerializeField] private AudioClip   clickSound;
     [SerializeField] private AudioClip   wrongMoveSound;
+
+    [Header("Fire Audio")]
+    [SerializeField] private AudioSource fireAudioSource;
+    [SerializeField] private float fireVolume = 0.6f;
     [SerializeField] private AudioClip   fireSound;
 
     [Header("Round Transition UI")]
@@ -514,10 +518,10 @@ public class overall_game_play : MonoBehaviour
         isReadyForExerciseSelection = false;
         slackerBar?.EndGame();
 
-        if (audioSource != null)
+        if (fireAudioSource != null)
         {
-            audioSource.loop = false;
-            audioSource.Stop();
+            fireAudioSource.loop = false;
+            fireAudioSource.Stop();
         }
 
         if (audioSource != null && victorySound != null)
@@ -780,11 +784,12 @@ public class overall_game_play : MonoBehaviour
 
             currentActiveExerciseModel = Instantiate(prefab, spawnPos, spawnRot);
 
-            if (audioSource != null && fireSound != null)
+            if (fireAudioSource != null && fireSound != null)
             {
-                audioSource.clip = fireSound;
-                audioSource.loop = true;
-                audioSource.Play();
+                fireAudioSource.clip = fireSound;
+                fireAudioSource.loop = true;
+                fireAudioSource.volume = fireVolume;
+                fireAudioSource.Play();
             }
 
             Debug.Log($"{TAG} Exercise prefab spawned at {(isSpecialMode ? "START CIRCLE" : "BUILDING")}: {spawnPos}");
