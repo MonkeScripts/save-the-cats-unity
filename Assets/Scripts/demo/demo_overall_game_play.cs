@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Concurrent;
+using UnityEngine.SceneManagement;
 
 public class demo_overall_game_play : MonoBehaviour
 {
@@ -150,9 +151,17 @@ public class demo_overall_game_play : MonoBehaviour
     // ──────────────────────────────────────────────
     void Awake()
     {
-        Debug.Log($"{TAG} Awake: Initializing AR Exercise Game (TUTORIAL MODE).");
+        ARSession arSession = FindFirstObjectByType<ARSession>();
+        if (arSession != null)
+        {
+            arSession.Reset();
+            Debug.Log($"{TAG} ✅ AR Session reset.");
+        }
+
         trackedImageManager = GetComponent<ARTrackedImageManager>();
+        trackedImageManager.enabled = false;
         trackedImageManager.enabled = true;
+        Debug.Log($"{TAG} ✅ ARTrackedImageManager re-enabled.");
         slackerBar = GetComponent<SlackerBar>();
 
         // Hide all UI except scanning panel
@@ -1033,9 +1042,25 @@ public class demo_overall_game_play : MonoBehaviour
 
     private System.Collections.IEnumerator LoadMainMenuRoutine()
     {
+        // ✅ Re-enable AR tracking before leaving scene
+        if (trackedImageManager != null)
+        {
+            trackedImageManager.enabled = true;
+            Debug.Log($"{TAG} ✅ ARTrackedImageManager re-enabled before scene change.");
+        }
+
+        // ✅ Reset AR Session before leaving scene
+        ARSession arSession = FindFirstObjectByType<ARSession>();
+        if (arSession != null)
+        {
+            arSession.Reset();
+            Debug.Log($"{TAG} ✅ AR Session reset before scene change.");
+        }
+
         float clipLength = (clickSound != null) ? clickSound.length : 0.1f;
         yield return new WaitForSeconds(clipLength);
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");  // ✅ Change to your main menu scene name
+
+        SceneManager.LoadScene("MainMenu");
     }
 }
 
