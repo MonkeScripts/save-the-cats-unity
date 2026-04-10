@@ -4097,7 +4097,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Time is Frozen for 15s!
+  m_text: Time is Frozen for 7s!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7166910343620b941a118137d977f8fc, type: 2}
   m_sharedMaterial: {fileID: 2765332488024186255, guid: 7166910343620b941a118137d977f8fc, type: 2}
