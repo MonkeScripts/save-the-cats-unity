@@ -49,6 +49,7 @@ public class SlackerBar : MonoBehaviour
     private float penaltyTimer    = 0f;   // Counts up when at 0/10
     private bool  isGameActive    = false;
     private Coroutine flashCoroutine;
+    private bool isPaused = false;
 
     // Callbacks from overall_game_play
     private System.Func<int>    getCatCount;
@@ -65,9 +66,24 @@ public class SlackerBar : MonoBehaviour
         Debug.Log($"{TAG} 🔄 Awake: Bar, text, and penalty text hidden.");
     }
 
+    public void Pause()
+    {
+        isPaused = true;
+        Debug.Log($"{TAG} ⏸️ SlackerBar paused.");
+    }
+
+    public void Resume()
+    {
+        isPaused = false;
+        inactivityTimer = 0f;  // ✅ Reset so user isn't penalised for reading the panel
+        penaltyTimer    = 0f;
+        Debug.Log($"{TAG} ▶️ SlackerBar resumed.");
+    }
+
     void Update()
     {
         if (!isGameActive) return;
+        if (isPaused) return;
 
         // ── Inactivity Timer (counts up, -1 every 5s) ──
         inactivityTimer += Time.deltaTime;

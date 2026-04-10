@@ -127,6 +127,7 @@ public class overall_game_play : MonoBehaviour
     {
         Debug.Log($"{TAG} Awake: Initializing AR Exercise Game.");
         trackedImageManager = GetComponent<ARTrackedImageManager>();
+        trackedImageManager.enabled = true;
         slackerBar = GetComponent<SlackerBar>();
 
         // Hide all UI except scanning panel
@@ -623,6 +624,22 @@ public class overall_game_play : MonoBehaviour
             audioSource.PlayOneShot(victorySound);
 
         Debug.Log($"{TAG} Final score: {catCount}");
+    }
+
+    public void OnMainMenuButtonClicked()
+    {
+        if (audioSource != null && clickSound != null)
+            audioSource.PlayOneShot(clickSound);
+
+        Debug.Log($"{TAG} 🏠 Main menu button clicked.");
+        StartCoroutine(LoadMainMenuRoutine());
+    }
+
+    private System.Collections.IEnumerator LoadMainMenuRoutine()
+    {
+        float clipLength = (clickSound != null) ? clickSound.length : 0.1f;
+        yield return new WaitForSeconds(clipLength);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
 
     // ──────────────────────────────────────────────

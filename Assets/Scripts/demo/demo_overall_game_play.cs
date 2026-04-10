@@ -85,10 +85,9 @@ public class demo_overall_game_play : MonoBehaviour
     [SerializeField] private AudioClip   fireSound;
 
     [Header("Round Transition UI")]
-    [SerializeField] private GameObject      roundSummaryPanel;
-    [SerializeField] private TextMeshProUGUI roundScoreText;
-    [SerializeField] private Button          playAgainButton;
-    [SerializeField] private Button          finalEndButton;
+    [SerializeField] private GameObject   roundSummaryPanel;
+    [SerializeField] private TextMeshProUGUI   roundScoreText;
+    [SerializeField] private Button   mainMenuButton;
 
     [Header("Tutorial Panels")]
     [SerializeField] private GameObject welcomePanel;
@@ -153,6 +152,7 @@ public class demo_overall_game_play : MonoBehaviour
     {
         Debug.Log($"{TAG} Awake: Initializing AR Exercise Game (TUTORIAL MODE).");
         trackedImageManager = GetComponent<ARTrackedImageManager>();
+        trackedImageManager.enabled = true;
         slackerBar = GetComponent<SlackerBar>();
 
         // Hide all UI except scanning panel
@@ -311,12 +311,11 @@ public class demo_overall_game_play : MonoBehaviour
 
             case TutorialStep.QRGuide:
                 if (qrGuidePanel    != null) qrGuidePanel.SetActive(true);
-                if (tutorialOKButton != null) tutorialOKButton.SetActive(true);
                 Debug.Log($"{TAG} 📚 Tutorial Step: QR Guide.");
                 break;
 
             case TutorialStep.Scanning:
-                // No tutorial panel, just enable scanning
+                if (qrGuidePanel    != null) qrGuidePanel.SetActive(false);
                 if (scanningPanel   != null) scanningPanel.SetActive(true);
                 if (tutorialOKButton != null) tutorialOKButton.SetActive(false);
                 Debug.Log($"{TAG} 📚 Tutorial Step: Scanning.");
@@ -336,15 +335,15 @@ public class demo_overall_game_play : MonoBehaviour
 
             case TutorialStep.SlackerBarExplain:
                 isTutorialPaused = true;
+                slackerBar?.Pause();  // ✅ Pause slacker bar
                 if (slackerBarTutorialPanel != null) slackerBarTutorialPanel.SetActive(true);
                 if (tutorialOKButton        != null) tutorialOKButton.SetActive(true);
-                Debug.Log($"{TAG} 📚 Tutorial Step: SlackerBar Explanation. Game paused.");
                 break;
 
             case TutorialStep.Gameplay:
                 isTutorialPaused = false;
+                slackerBar?.Resume();  // ✅ Resume slacker bar
                 if (tutorialOKButton != null) tutorialOKButton.SetActive(false);
-                Debug.Log($"{TAG} 📚 Tutorial Step: Gameplay. Game resumed.");
                 break;
         }
 
@@ -374,6 +373,8 @@ public class demo_overall_game_play : MonoBehaviour
         {
             case TutorialStep.Welcome:
                 // Welcome → QR Guide
+                if (tutorialOKButton != null)
+                    tutorialOKButton.SetActive(false);
                 ShowTutorialStep(TutorialStep.QRGuide);
                 break;
 
@@ -496,6 +497,11 @@ public class demo_overall_game_play : MonoBehaviour
 
         if (waitingExercisePanel != null)
             waitingExercisePanel.SetActive(true);
+
+        if (walkToCirclePanel != null)
+            walkToCirclePanel.SetActive(false);
+        if (tutorialOKButton != null)
+            tutorialOKButton.SetActive(false);
 
         Debug.Log($"{TAG} ▶️ Ready for exercise selection via MQTT.");
     }
@@ -741,6 +747,8 @@ public class demo_overall_game_play : MonoBehaviour
 
     public void LockAnchor()
     {
+        if (qrGuidePanel != null)
+            qrGuidePanel.SetActive(false);
         if (audioSource != null && clickSound != null)
             audioSource.PlayOneShot(clickSound);
 
@@ -763,54 +771,6 @@ public class demo_overall_game_play : MonoBehaviour
         isWaitingAtStartLocation = true;
 
         Debug.Log($"{TAG} 🎯 Waiting for user to walk to start location...");
-    }
-
-    public void PlayAgain()
-    {
-        if (audioSource != null && clickSound != null)
-            audioSource.PlayOneShot(clickSound);
-        if (roundSummaryPanel != null)
-            roundSummaryPanel.SetActive(false);
-
-        selectedExercise            = ExerciseType.None;
-        timeLeft                    = gameDuration;
-        isGameActive                = false;
-        isTimePaused                = false;
-        isTutorialPaused            = false;
-        catMultiplier               = 1;
-        isReadyForExerciseSelection = false;
-        slackerBar?.ResetForNewRound();
-
-        SpawnStartCircle();
-
-        // ── TUTORIAL: Show Walk to Circle panel again ──
-        ShowTutorialStep(TutorialStep.WalkToCircle);
-
-        isWaitingAtStartLocation = true;
-
-        effectManager?.ResetForNewRound();
-
-        Debug.Log($"{TAG} PlayAgain: Walk to start location for new round.");
-
-        if (PushUpSitUpGameMode.Instance != null) PushUpSitUpGameMode.Instance.Reset();
-        if (StartCircleAnchor.Instance   != null) StartCircleAnchor.Instance.Reset();
-    }
-
-    public void ShowFinalResults()
-    {
-        if (audioSource != null && clickSound != null)
-            audioSource.PlayOneShot(clickSound);
-        if (roundSummaryPanel != null)
-            roundSummaryPanel.SetActive(false);
-        if (gameOverPanel  != null)
-            gameOverPanel.SetActive(true);
-        if (finalScoreText != null)
-            finalScoreText.text = $"{catCount}";
-
-        if (audioSource != null && victorySound != null)
-            audioSource.PlayOneShot(victorySound);
-
-        Debug.Log($"{TAG} Final score: {catCount}");
     }
 
     // ──────────────────────────────────────────────
@@ -1060,6 +1020,22 @@ public class demo_overall_game_play : MonoBehaviour
         yield return new WaitForSeconds(1f);
         wrongMovePanel.SetActive(false);
         wrongMoveCoroutine = null;
+    }
+
+    public void OnMainMenuButtonClicked()
+    {
+        if (audioSource != null && clickSound != null)
+            audioSource.PlayOneShot(clickSound);
+
+        Debug.Log($"{TAG} 🏠 Main menu button clicked. Loading main menu.");
+        StartCoroutine(LoadMainMenuRoutine());
+    }
+
+    private System.Collections.IEnumerator LoadMainMenuRoutine()
+    {
+        float clipLength = (clickSound != null) ? clickSound.length : 0.1f;
+        yield return new WaitForSeconds(clipLength);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");  // ✅ Change to your main menu scene name
     }
 }
 
