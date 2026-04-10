@@ -11,7 +11,7 @@ public class MainMenu : MonoBehaviour
     private const string TAG = "[MAIN_MENU]";
 
     [Header("Scene Names")]
-    [SerializeField] private string demoSceneName = "demo-scene";
+    [SerializeField] private string demoSceneName = "more-demo-scene";
     [SerializeField] private string gameSceneName = "more-Special-Effect";
 
     [Header("Audio")]

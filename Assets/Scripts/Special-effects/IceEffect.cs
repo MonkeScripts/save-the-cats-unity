@@ -52,6 +52,8 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     public event System.Action OnSpawnCat;
     public event System.Action<int, float> OnSetCatMultiplier;
     public event System.Action<string, float> OnShowInfoPanel;  // NEW
+    public event System.Action OnShardAppeared;
+    public event System.Action OnShardGone;
 
     // ──────────────────────────────────────────────
     // Internal state

@@ -1,38 +1,30 @@
-// GrowthEffect.cs
-// Attach to the SAME GameObject as overall_game_play (XR Origin).
-// This is a self-contained MonoBehaviour that handles ONLY the growth/multiplier mechanic.
-// It implements ISpecialEffect so SpecialEffectManager can drive it automatically.
-//
-// WHAT IT DOES:
-//   • At 50 s remaining, spawns a green ice shard for LIMITED TIME (5 seconds).
-//   • Plays crystal_appear sound while shard is visible.
-//   • If user collects within 5 seconds: shows info panel, green orb + x3 multiplier.
-//   • If user misses: shard disappears, power-up lost!
-//
-// IMPORTANT: This script uses its OWN AudioSource so it doesn't interrupt the fire sound!
+// demo_GrowthEffect.cs
+// Attach to XR Origin in TUTORIAL SCENE.
+// Same as GrowthEffect.cs but fires OnShardAppeared and OnShardGone
+// so the tutorial panel shows/hides when green shard appears/disappears.
 
 using UnityEngine;
 using System.Collections;
 
-public class GrowthEffect : MonoBehaviour, ISpecialEffect
+public class demo_GrowthEffect : MonoBehaviour, ISpecialEffect
 {
-    private const string TAG = "[GROWTH_EFFECT]";
+    private const string TAG = "[DEMO_GROWTH_EFFECT]";
 
     // ──────────────────────────────────────────────
     // Inspector fields
     // ──────────────────────────────────────────────
     [Header("Growth Shard Prefabs")]
-    [SerializeField] private GameObject greenShardPrefab;    // The collectible green ice shard
-    [SerializeField] private GameObject greenOrbPrefab;      // Green orb shield VFX around building
+    [SerializeField] private GameObject greenShardPrefab;
+    [SerializeField] private GameObject greenOrbPrefab;
 
     [Header("Growth Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 50f;   // Seconds left when shard appears
-    [SerializeField] private float shardDuration        = 5f;    // How long shard stays (limited time!)
-    [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres in front of building
-    [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
-    [SerializeField] private float shieldDuration       = 10f;   // Seconds the multiplier is active
-    [SerializeField] private int   catMultiplier        = 3;     // How many cats per rep during shield
-    [SerializeField] private float infoPanelDuration    = 5f;    // How long info panel shows
+    [SerializeField] private float shardSpawnTime       = 50f;
+    [SerializeField] private float shardDuration        = 5f;
+    [SerializeField] private float shardSpawnDistance   = 0.15f;
+    [SerializeField] private float shardTriggerDistance = 0.30f;
+    [SerializeField] private float shieldDuration       = 10f;
+    [SerializeField] private int   catMultiplier        = 3;
+    [SerializeField] private float infoPanelDuration    = 5f;
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
     [SerializeField] private AudioSource effectAudioSource;
@@ -47,14 +39,14 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     // ──────────────────────────────────────────────
     // ISpecialEffect — public API
     // ──────────────────────────────────────────────
-    public string EffectName => "Growth Shard";
-    public event System.Action<int> OnBonusCatsEarned;
-    public event System.Action<bool> OnTimePause;
-    public event System.Action OnSpawnCat;
-    public event System.Action<int, float> OnSetCatMultiplier;
-    public event System.Action<string, float> OnShowInfoPanel;  // NEW
-    public event System.Action OnShardAppeared;
-    public event System.Action OnShardGone;
+    public string EffectName => "Demo Growth Shard";
+    public event System.Action<int>           OnBonusCatsEarned;
+    public event System.Action<bool>          OnTimePause;
+    public event System.Action                OnSpawnCat;
+    public event System.Action<int, float>    OnSetCatMultiplier;
+    public event System.Action<string, float> OnShowInfoPanel;
+    public event System.Action                OnShardAppeared;   // NEW
+    public event System.Action                OnShardGone;       // NEW
 
     // ──────────────────────────────────────────────
     // Internal state
@@ -78,11 +70,11 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             SpawnShard(buildingPosition);
         }
 
-        // Phase 2: Poll for phone proximity (only if shard exists and not expired)
+        // Phase 2: Poll for phone proximity
         if (shardHasSpawned && !shardCollected && !shardExpired && spawnedShard != null)
         {
-            float dx = phonePosition.x - spawnedShard.transform.position.x;
-            float dz = phonePosition.z - spawnedShard.transform.position.z;
+            float dx   = phonePosition.x - spawnedShard.transform.position.x;
+            float dz   = phonePosition.z - spawnedShard.transform.position.z;
             float dist = Mathf.Sqrt(dx * dx + dz * dz);
             Debug.Log($"{TAG} 📏 Phone↔Shard XZ dist: {dist:F2} m (trigger < {shardTriggerDistance} m)");
 
@@ -118,9 +110,8 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     private void SpawnShard(Vector3 buildingPosition)
     {
         shardHasSpawned = true;
-        
-        // Spawn shard in FRONT of the building (positive Z)
-        Vector3 shardPos = buildingPosition + new Vector3(0f, 0.4f, shardSpawnDistance);
+
+        Vector3 shardPos = buildingPosition + new Vector3(0f, 0.2f, shardSpawnDistance);
         spawnedShard = Instantiate(greenShardPrefab, shardPos, Quaternion.identity);
         Debug.Log($"{TAG} ⏱️ {shardSpawnTime}s left — green shard spawned at {shardPos}.");
         Debug.Log($"{TAG} ⚠️ HURRY! Green shard will disappear in {shardDuration} seconds!");
@@ -128,12 +119,16 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         // Start crystal appear sound
         if (effectAudioSource != null && crystalAppearSound != null)
         {
-            effectAudioSource.clip = crystalAppearSound;
-            effectAudioSource.loop = true;
+            effectAudioSource.clip   = crystalAppearSound;
+            effectAudioSource.loop   = true;
             effectAudioSource.volume = crystalVolume;
             effectAudioSource.Play();
-            Debug.Log($"{TAG} 🔊 Crystal appear sound started (volume {crystalVolume}).");
+            Debug.Log($"{TAG} 🔊 Crystal appear sound started.");
         }
+
+        // NEW: Fire OnShardAppeared so tutorial panel shows
+        OnShardAppeared?.Invoke();
+        Debug.Log($"{TAG} 💎 OnShardAppeared fired.");
 
         // Start the shard expiration timer
         shardTimerCoroutine = StartCoroutine(ShardExpirationRoutine());
@@ -143,7 +138,6 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     {
         yield return new WaitForSeconds(shardDuration);
 
-        // If shard wasn't collected, it expires
         if (!shardCollected)
         {
             shardExpired = true;
@@ -163,6 +157,10 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
                 Destroy(spawnedShard);
                 Debug.Log($"{TAG} 💚 Green shard disappeared (not collected in time).");
             }
+
+            // NEW: Fire OnShardGone so tutorial panel hides
+            OnShardGone?.Invoke();
+            Debug.Log($"{TAG} 💎 OnShardGone fired (expired).");
         }
     }
 
@@ -191,13 +189,15 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
 
         // Play collect SFX
         if (effectAudioSource != null && collectSound != null)
-        {
             effectAudioSource.PlayOneShot(collectSound);
-        }
 
-        // NEW: Show info panel
+        // Show info panel
         OnShowInfoPanel?.Invoke("growth", infoPanelDuration);
         Debug.Log($"{TAG} 📋 Growth info panel requested for {infoPanelDuration}s.");
+
+        // NEW: Fire OnShardGone so tutorial panel hides
+        OnShardGone?.Invoke();
+        Debug.Log($"{TAG} 💎 OnShardGone fired (collected).");
 
         // Spawn green orb shield at building position
         spawnedOrb = Instantiate(greenOrbPrefab, buildingPosition, Quaternion.identity);
@@ -218,14 +218,13 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
         // Start shield sound
         if (effectAudioSource != null && shieldSound != null)
         {
-            effectAudioSource.clip = shieldSound;
-            effectAudioSource.loop = true;
+            effectAudioSource.clip   = shieldSound;
+            effectAudioSource.loop   = true;
             effectAudioSource.volume = shieldVolume;
             effectAudioSource.Play();
-            Debug.Log($"{TAG} 🔊 Shield sound started (volume {shieldVolume}).");
+            Debug.Log($"{TAG} 🔊 Shield sound started.");
         }
 
-        // Wait for shield duration
         yield return new WaitForSeconds(shieldDuration);
 
         // Stop shield sound
@@ -247,7 +246,7 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
 
         // RESET MULTIPLIER
         OnSetCatMultiplier?.Invoke(1, 0f);
-        Debug.Log($"{TAG} ▶️ Cat multiplier reset to x1. Game resumes normally!");
+        Debug.Log($"{TAG} ▶️ Cat multiplier reset to x1.");
     }
 
     private void CleanUp()
@@ -262,11 +261,18 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             Debug.Log($"{TAG} ▶️ Cleanup: Resetting multiplier to x1.");
         }
 
+        // Fire OnShardGone if shard was still visible
+        if (shardHasSpawned && !shardCollected && !shardExpired)
+        {
+            OnShardGone?.Invoke();
+            Debug.Log($"{TAG} 💎 OnShardGone fired (cleanup).");
+        }
+
         if (effectAudioSource != null)
         {
             if (effectAudioSource.isPlaying)
                 effectAudioSource.Stop();
-            effectAudioSource.loop = false;
+            effectAudioSource.loop   = false;
             effectAudioSource.volume = 1f;
             Debug.Log($"{TAG} 🔇 Audio stopped during cleanup.");
         }
@@ -276,6 +282,7 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
             Destroy(spawnedShard);
             Debug.Log($"{TAG} 🧹 Shard cleaned up.");
         }
+
         if (spawnedOrb != null)
         {
             Destroy(spawnedOrb);

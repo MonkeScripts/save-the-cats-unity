@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/more-Special-Effect.unity
     guid: c055f574ac704bb47acca0d3783fc08a
   - enabled: 1
+    path: Assets/Scenes/more-demo-scene.unity
+    guid: 5bd17770a45a8fe45adc238aefeec7bd
+  - enabled: 0
     path: Assets/Scenes/demo-scene.unity
     guid: cb3d9cd937ba5694d8f6dcf0a1bf2128
   - enabled: 0

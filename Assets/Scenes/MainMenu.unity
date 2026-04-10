@@ -277,7 +277,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5adc03bd5e19a8b49a87f5f01ed07b44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
-  demoSceneName: demo-scene
+  demoSceneName: more-demo-scene
   gameSceneName: more-Special-Effect
   audioSource: {fileID: 771302006}
   clickSound: {fileID: 8300000, guid: 6b3479da783995c479adb8ae4b085e7b, type: 3}
