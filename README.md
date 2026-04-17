@@ -65,7 +65,7 @@ On each run, minica will generate a new keypair and sign an end-entity (leaf) ce
 ### Step 5: Adding certificate path to zenoh_bridge configuration
 In zenoh_bridge/BRIDGE_CONFIG.json5, add the paths to the generated certificates:
 
-```json
+```json5
       tls: {
         ////
         //// server_private_key: TLS private key provided as either a file or base 64 encoded string.
@@ -116,12 +116,50 @@ You should be able to see something like this:
 > When you run the demo topic would not be present but you publish your own topic in the gui to check
 ![barabara help](images/test_publish.png)
 
-### Step 3: Run Unity application
-Run the unity application, should be able to see the published messages based on what you publish in the MQTT explorer.
+## Running the project
 
-So far: 
-1. Pressing space would publish a `heeheehorhor` msg
-2. The program subscribes to `ultra/action1` for data from the ultra96
+### Step 1: Repository & Version
+Pull the AR repository and open it using Unity version 6.3 LTS.
+
+### Step 2: Network & Certificate Setup
+Certificates: Copy your generated cert.pem into the Assets/StreamingAssets folder within the Unity project.
+
+IP Configuration:
+1. Connect your computer and phone to the same Mobile Data Hotspot.
+2. Run ipconfig (Windows) or ifconfig (Mac/Linux) to find your mobile data IP address.
+3. Open MqttService.cs in Unity and update the IP address variable to match your mobile data IP.
+
+### Step 3: Build & Deployment Settings
+To ensure AR features and Android compatibility work correctly, apply the following settings:
+
+#### 1. Package Manager
+Go to Window > Package Manager and install:
+- AR Foundation
+- Google ARCore XR Plugin
+- XR Plugin Management
+
+#### 2. Project & XR Settings
+Go to Edit > Project Settings > XR Plug-in Management.
+Enable ARCore for the Android tab.
+Check Project Validation in the sidebar and click "Fix All" to resolve any configuration errors.
+
+#### 3. Player Settings (Android)
+Go to Project Settings > Player:
+Identification: Under "Override Default Package Name," ensure the box is checked and a unique package name is assigned.
+Minimum API Level: Set this to Level 29 or lower (ensure your phone is at least Level 29).
+
+#### 4. Final Build
+Go to File > Build Settings and switch the platform to Android.
+Scenes in Build: Ensure the Main Menu scene is at the very top (Index 0).
+Create a new folder named Builds in your directory.
+Click Build and Run while your phone is connected via USB.
+
+### Step 5: Running the Application
+- Zenoh Bridge: Ensure the bridge is running on your laptop with the correct config.
+- MQTT Explorer: Open the explorer to monitor the traffic.
+- App Launch: Open the app on your phone.
+- The program subscribes to `ultra/action1` for data from the Ultra96.
+- You can test connectivity by publishing a test message in MQTT Explorer to see if the Unity app responds.
 
 Thank you mukund
 
