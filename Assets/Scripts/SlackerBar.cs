@@ -38,7 +38,7 @@ public class SlackerBar : MonoBehaviour
 
     [Header("Bar Settings")]
     [SerializeField] private float maxManaPoint        = 10f;  // Maximum bar value
-    [SerializeField] private float inactivityThreshold = 5f;   // Seconds before -1 state
+    [SerializeField] private float inactivityThreshold = 4f;   // Seconds before -1 state
     [SerializeField] private float penaltyInterval     = 3f;   // Seconds between -5 cats at 0/10
 
     // ──────────────────────────────────────────────

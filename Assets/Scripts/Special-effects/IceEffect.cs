@@ -26,10 +26,10 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject iceEffectPrefab;
 
     [Header("Ice Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 30f;   // Seconds left when shard appears
-    [SerializeField] private float shardDuration        = 5f;    // How long shard stays (limited time!)
-    [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres away from building
-    [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
+    [SerializeField] private float shardSpawnTime       = 15f;   // Seconds left when shard appears
+    [SerializeField] private float shardDuration        = 7f;    // How long shard stays (limited time!)
+    [SerializeField] private float shardSpawnDistance   = 1.0f; // Metres away from building
+    [SerializeField] private float shardTriggerDistance = 0.70f; // Metres phone must be within to collect
     [SerializeField] private float freezeDuration       = 7f;   // Seconds time is paused
     [SerializeField] private float infoPanelDuration    = 5f;    // How long info panel shows
 
@@ -40,7 +40,7 @@ public class IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   freezeSound;
 
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.8f;
     [SerializeField] private float freezeVolume  = 1.0f;
 
     // ──────────────────────────────────────────────

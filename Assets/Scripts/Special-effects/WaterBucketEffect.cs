@@ -26,13 +26,13 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject rainEffectPrefab;
 
     [Header("Water Bucket Settings")]
-    [SerializeField] private float bucketSpawnTime       = 15f;   // Seconds left when bucket appears
-    [SerializeField] private float bucketDuration        = 5f;    // How long bucket stays (limited time!)
-    [SerializeField] private float bucketSpawnDistance   = 0.15f; // Metres right of building
-    [SerializeField] private float bucketTriggerDistance = 0.30f; // Metres phone must be within
+    [SerializeField] private float bucketSpawnTime       = 50f;   // Seconds left when bucket appears
+    [SerializeField] private float bucketDuration        = 7f;    // How long bucket stays (limited time!)
+    [SerializeField] private float bucketSpawnDistance   = 1.0f; // Metres right of building
+    [SerializeField] private float bucketTriggerDistance = 0.7f; // Metres phone must be within
     [SerializeField] private float rainDuration          = 5f;    // Seconds rain lasts
     [SerializeField] private int   bonusCatSpawns        = 15;    // Number of cats to spawn visually
-    [SerializeField] private float catSpawnInterval      = 0.3f;  // Seconds between each cat spawn
+    [SerializeField] private float catSpawnInterval      = 0.2f;  // Seconds between each cat spawn
     [SerializeField] private float infoPanelDuration     = 5f;    // How long info panel shows
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
@@ -42,7 +42,7 @@ public class WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   rainSound;
     
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.8f;
     [SerializeField] private float rainVolume    = 1.0f;
 
     // ──────────────────────────────────────────────

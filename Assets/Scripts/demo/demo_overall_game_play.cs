@@ -55,7 +55,7 @@ public class demo_overall_game_play : MonoBehaviour
 
     [Header("Start Location Settings")]
     [SerializeField] private GameObject  startCirclePrefab;
-    [SerializeField] private float       circleSpawnDistance   = 0.8f;
+    [SerializeField] private float       circleSpawnDistance   = 1.2f;
     [SerializeField] private float       circleTriggerDistance = 0.6f;
     [SerializeField] private AudioSource startCircleAudioSource;
     [SerializeField] private AudioClip   startCircleSound;

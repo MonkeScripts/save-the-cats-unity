@@ -18,11 +18,11 @@ public class demo_IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject iceEffectPrefab;
 
     [Header("Ice Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 30f;
-    [SerializeField] private float shardDuration        = 5f;
-    [SerializeField] private float shardSpawnDistance   = 0.15f;
-    [SerializeField] private float shardTriggerDistance = 0.30f;
-    [SerializeField] private float freezeDuration       = 15f;
+    [SerializeField] private float shardSpawnTime       = 15f;
+    [SerializeField] private float shardDuration        = 7f;
+    [SerializeField] private float shardSpawnDistance   = 1.0f;
+    [SerializeField] private float shardTriggerDistance = 0.70f;
+    [SerializeField] private float freezeDuration       = 7f;
     [SerializeField] private float infoPanelDuration    = 5f;
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
@@ -32,7 +32,7 @@ public class demo_IceEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   freezeSound;
 
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.9f;
     [SerializeField] private float freezeVolume  = 1.0f;
 
     // ──────────────────────────────────────────────

@@ -18,13 +18,13 @@ public class demo_WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject rainEffectPrefab;
 
     [Header("Water Bucket Settings")]
-    [SerializeField] private float bucketSpawnTime       = 15f;
-    [SerializeField] private float bucketDuration        = 5f;
-    [SerializeField] private float bucketSpawnDistance   = 0.15f;
-    [SerializeField] private float bucketTriggerDistance = 0.30f;
+    [SerializeField] private float bucketSpawnTime       = 50f;
+    [SerializeField] private float bucketDuration        = 7f;
+    [SerializeField] private float bucketSpawnDistance   = 1.0f;
+    [SerializeField] private float bucketTriggerDistance = 0.70f;
     [SerializeField] private float rainDuration          = 5f;
     [SerializeField] private int   bonusCatSpawns        = 15;
-    [SerializeField] private float catSpawnInterval      = 0.3f;
+    [SerializeField] private float catSpawnInterval      = 0.2f;
     [SerializeField] private float infoPanelDuration     = 5f;
 
     [Header("Audio - USE A SEPARATE AUDIOSOURCE!")]
@@ -34,7 +34,7 @@ public class demo_WaterBucketEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   rainSound;
 
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.8f;
     [SerializeField] private float rainVolume    = 1.0f;
 
     // ──────────────────────────────────────────────

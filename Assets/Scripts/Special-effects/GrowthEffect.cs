@@ -26,10 +26,10 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject greenOrbPrefab;      // Green orb shield VFX around building
 
     [Header("Growth Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 50f;   // Seconds left when shard appears
-    [SerializeField] private float shardDuration        = 5f;    // How long shard stays (limited time!)
-    [SerializeField] private float shardSpawnDistance   = 0.15f; // Metres in front of building
-    [SerializeField] private float shardTriggerDistance = 0.30f; // Metres phone must be within to collect
+    [SerializeField] private float shardSpawnTime       = 35f;   // Seconds left when shard appears
+    [SerializeField] private float shardDuration        = 7f;    // How long shard stays (limited time!)
+    [SerializeField] private float shardSpawnDistance   = 1.0f; // Metres in front of building
+    [SerializeField] private float shardTriggerDistance = 0.70f; // Metres phone must be within to collect
     [SerializeField] private float shieldDuration       = 10f;   // Seconds the multiplier is active
     [SerializeField] private int   catMultiplier        = 3;     // How many cats per rep during shield
     [SerializeField] private float infoPanelDuration    = 5f;    // How long info panel shows
@@ -41,7 +41,7 @@ public class GrowthEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   shieldSound;
 
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.8f;
     [SerializeField] private float shieldVolume  = 1.0f;
 
     // ──────────────────────────────────────────────

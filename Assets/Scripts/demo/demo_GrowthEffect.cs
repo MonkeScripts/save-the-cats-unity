@@ -18,10 +18,10 @@ public class demo_GrowthEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private GameObject greenOrbPrefab;
 
     [Header("Growth Shard Settings")]
-    [SerializeField] private float shardSpawnTime       = 50f;
-    [SerializeField] private float shardDuration        = 5f;
-    [SerializeField] private float shardSpawnDistance   = 0.15f;
-    [SerializeField] private float shardTriggerDistance = 0.30f;
+    [SerializeField] private float shardSpawnTime       = 35f;
+    [SerializeField] private float shardDuration        = 7f;
+    [SerializeField] private float shardSpawnDistance   = 1.0f;
+    [SerializeField] private float shardTriggerDistance = 0.70f;
     [SerializeField] private float shieldDuration       = 10f;
     [SerializeField] private int   catMultiplier        = 3;
     [SerializeField] private float infoPanelDuration    = 5f;
@@ -33,7 +33,7 @@ public class demo_GrowthEffect : MonoBehaviour, ISpecialEffect
     [SerializeField] private AudioClip   shieldSound;
 
     [Header("Volume Settings")]
-    [SerializeField] private float crystalVolume = 0.5f;
+    [SerializeField] private float crystalVolume = 0.8f;
     [SerializeField] private float shieldVolume  = 1.0f;
 
     // ──────────────────────────────────────────────
